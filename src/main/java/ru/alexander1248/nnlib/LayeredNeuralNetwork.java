@@ -6,15 +6,11 @@ import java.util.List;
 public class LayeredNeuralNetwork {
     private final List<Layer> layers = new ArrayList<>();
 
-    private final CalculatingType type;
     double trainSpeed = 0.1, momentumCoefficient = 0;
 
 
-    public LayeredNeuralNetwork(CalculatingType type) {
-        this.type = type;
-    }
-    public LayeredNeuralNetwork(CalculatingType type, AFunction[] layersFunctions, int[] layersSizes) {
-        this(type);
+    public LayeredNeuralNetwork() {}
+    public LayeredNeuralNetwork(AFunction[] layersFunctions, int[] layersSizes) {
         initInLayer(layersFunctions[0], layersSizes[1], layersSizes[0]);
         for (int i = 1; i < layers.size(); i++) initHiddenOrOutLayer(layersFunctions[i], layersSizes[i + 1]);
     }
@@ -62,9 +58,6 @@ public class LayeredNeuralNetwork {
         return error / rightResults.length * 100;
     }
 
-    public CalculatingType getType() {
-        return type;
-    }
 
     public void setTrainSpeed(double trainSpeed) {
         this.trainSpeed = trainSpeed;
@@ -72,5 +65,25 @@ public class LayeredNeuralNetwork {
 
     public void setMomentumCoefficient(double momentumCoefficient) {
         this.momentumCoefficient = momentumCoefficient;
+    }
+
+    public void mutate(double coefficient) {
+        for (int i = 0; i < 10; i++)
+            layers.get((int) (Math.random() * layers.size())).mutate(coefficient);
+    }
+
+
+    public LayeredNeuralNetwork clone() {
+        LayeredNeuralNetwork network = new LayeredNeuralNetwork();
+        network.initInLayer(layers.get(0).getFunction(), layers.get(0).getNeurons().length, layers.get(0).getInputSize());
+        for (int l = 1; l < layers.size(); l++) {
+            network.initInLayer(layers.get(l).getFunction(), layers.get(l).getNeurons().length, layers.get(l).getInputSize());
+            for (int n = 0; n < layers.get(l).getNeurons().length; n++) {
+                for (int w = 0; w < layers.get(l).getNeurons()[n].weights.length; w++)
+                    network.getLayers().get(l).getNeurons()[n].weights[w] = layers.get(l).getNeurons()[n].weights[w];
+                network.getLayers().get(l).getNeurons()[n].biasWeight = layers.get(l).getNeurons()[n].biasWeight;
+            }
+        }
+        return network;
     }
 }

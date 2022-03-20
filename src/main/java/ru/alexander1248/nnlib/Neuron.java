@@ -90,11 +90,9 @@ public class Neuron {
         output = ActivationFunction.GetFunction(function, weightedSum);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Neuron neuron = (Neuron) o;
-        return Double.compare(neuron.biasWeight, biasWeight) == 0 && Double.compare(neuron.weightedSum, weightedSum) == 0 && Double.compare(neuron.output, output) == 0 && Double.compare(neuron.error, error) == 0 && function == neuron.function && Arrays.equals(input, neuron.input) && Arrays.equals(weights, neuron.weights) && Arrays.equals(acceleration, neuron.acceleration);
+    public void mutate(double coefficient) {
+        if (Math.random() < coefficient) biasWeight = Math.random() * 2 - 1;
+        for (int i = 0; i < weights.length; i++)
+            if (Math.random() < coefficient) weights[i] = Math.random() * 2 - 1;
     }
 }

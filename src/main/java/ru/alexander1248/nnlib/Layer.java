@@ -9,8 +9,6 @@ public class Layer {
     private AFunction function;
     boolean firstLayer;
 
-    private int numThreads = 1;
-
     public Layer(Layer prevLayer, AFunction function, int size) {
         firstLayer = false;
         this.prevLayer = prevLayer;
@@ -45,7 +43,6 @@ public class Layer {
 
 
     public void calculateLayer() {
-        Thread[] threads = new Thread[numThreads];
         if (firstLayer) {
             for (int i = 0; i < neurons.length; i++) {
                 for (int j = 0; j < input.length; j++)
@@ -75,7 +72,6 @@ public class Layer {
     }
 
     public void calculateNewWeights(double trainSpeed, double momentumCoef) {
-        Thread[] threads = new Thread[numThreads];
         if (firstLayer) {
             for (int i = 0; i < neurons.length; i++) {
                 for (int j = 0; j < prevLayer.neurons.length; j++) {
@@ -107,7 +103,8 @@ public class Layer {
         return function;
     }
 
-    public void setNumThreads(int numThreads) {
-        this.numThreads = numThreads;
+    public void mutate(double coefficient) {
+        for (int i = 0; i < 10; i++)
+            neurons[(int) (Math.random() * neurons.length)].mutate(coefficient);
     }
 }
