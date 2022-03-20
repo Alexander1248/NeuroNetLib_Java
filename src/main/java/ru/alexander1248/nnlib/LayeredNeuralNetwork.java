@@ -21,12 +21,10 @@ public class LayeredNeuralNetwork {
 
     public void initHiddenOrOutLayer(AFunction function, int size) {
         Layer layer = new Layer(layers.get(layers.size() - 1),function,size);
-        layer.setCalculatingType(type);
         layers.add(layer);
     }
     public void initInLayer(AFunction function, int size, int inputSize){
         Layer layer = new Layer(inputSize,function,size);
-        layer.setCalculatingType(type);
         layers.add(layer);
     }
 
