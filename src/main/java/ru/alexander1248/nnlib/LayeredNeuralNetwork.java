@@ -45,7 +45,7 @@ public class LayeredNeuralNetwork {
     }
 
     public void calculateNewWeights() {
-        for (int i = 1; i < layers.size(); i++) layers.get(i).calculateNewWeights(trainSpeed,momentumCoefficient);
+        for (int i = 1; i < layers.size(); i++) layers.get(i).calculateNewWeights(trainSpeed, momentumCoefficient);
     }
 
     public List<Layer> getLayers() {
@@ -67,11 +67,11 @@ public class LayeredNeuralNetwork {
         this.momentumCoefficient = momentumCoefficient;
     }
 
+
     public void mutate(double coefficient) {
         for (int i = 0; i < 10; i++)
             layers.get((int) (Math.random() * layers.size())).mutate(coefficient);
     }
-
 
     public LayeredNeuralNetwork clone() {
         LayeredNeuralNetwork network = new LayeredNeuralNetwork();

@@ -10,11 +10,10 @@ import java.io.File;
 import java.io.IOException;
 
 public class NetworkTests extends TestCase {
-    private static final CalculatingType type = CalculatingType.GPU;
 
 
     public void testXOR() {
-        LayeredNeuralNetwork network = new LayeredNeuralNetwork(type);
+        LayeredNeuralNetwork network = new LayeredNeuralNetwork();
         network.initInLayer(AFunction.Sigmoid,4,2);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 2);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 1);
@@ -56,7 +55,7 @@ public class NetworkTests extends TestCase {
     }
 
     public void testCompressor() {
-        LayeredNeuralNetwork network = new LayeredNeuralNetwork(type);
+        LayeredNeuralNetwork network = new LayeredNeuralNetwork();
         network.initInLayer(AFunction.Sigmoid, 28 * 14, 28 * 28);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 28 * 28);
         network.setTrainSpeed(0.005);
@@ -110,7 +109,7 @@ public class NetworkTests extends TestCase {
     }
 
     public void testRecognition() {
-        LayeredNeuralNetwork network = new LayeredNeuralNetwork(type);
+        LayeredNeuralNetwork network = new LayeredNeuralNetwork();
         network.initInLayer(AFunction.Sigmoid, 14 * 14, 28 * 28);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 7 * 7);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 10);

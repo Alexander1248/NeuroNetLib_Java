@@ -24,6 +24,14 @@ public class Neuron {
         for (int i = 0; i < input.length; i++) weights[i] = Math.random() * 2 - 1;
         biasWeight = Math.random() * 2 - 1;
     }
+    public Neuron(AFunction function, boolean[] links) {
+        this.function = function;
+        input = new double[links.length];
+        weights = new double[links.length];
+        acceleration = new double[links.length];
+        for (int i = 0; i < input.length; i++) weights[i] = Math.random() * 2 - 1;
+        biasWeight = Math.random() * 2 - 1;
+    }
     //Getters
     public double[] getInput() {
         return input;

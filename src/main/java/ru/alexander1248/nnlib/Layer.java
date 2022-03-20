@@ -59,7 +59,8 @@ public class Layer {
     }
 
     public void calculateOutLayerError(double[] rightResults) {
-        for (int i = 0; i < neurons.length; i++) neurons[i].setError((rightResults[i] - neurons[i].getOutput()) * ActivationFunction.GetDerivative(neurons[i].getFunction(),neurons[i].getWeightedSum()));
+        for (int i = 0; i < neurons.length; i++)
+            neurons[i].setError((rightResults[i] - neurons[i].getOutput()) * ActivationFunction.GetDerivative(neurons[i].getFunction(),neurons[i].getWeightedSum()));
     }
     public void calculateInOrHiddenLayerError(Layer postLayer) {
         for (int i = 0; i < neurons.length; i++) {
@@ -71,12 +72,12 @@ public class Layer {
         }
     }
 
-    public void calculateNewWeights(double trainSpeed, double momentumCoef) {
+    public void calculateNewWeights(double trainSpeed, double momentumCoefficient) {
         if (firstLayer) {
             for (int i = 0; i < neurons.length; i++) {
                 for (int j = 0; j < prevLayer.neurons.length; j++) {
-                    neurons[i].acceleration[j] *= momentumCoef;
-                    neurons[i].acceleration[j] += (1 - momentumCoef) * neurons[i].getError() * input[j] * trainSpeed;
+                    neurons[i].acceleration[j] *= momentumCoefficient;
+                    neurons[i].acceleration[j] += (1 - momentumCoefficient) * neurons[i].getError() * input[j] * trainSpeed;
                     neurons[i].weights[j] += neurons[i].acceleration[j];
                 }
                 neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
@@ -85,8 +86,8 @@ public class Layer {
         else {
             for (int i = 0; i < neurons.length; i++) {
                 for (int j = 0; j < prevLayer.neurons.length; j++) {
-                    neurons[i].acceleration[j] *= momentumCoef;
-                    neurons[i].acceleration[j] += (1 - momentumCoef) * neurons[i].getError() * prevLayer.neurons[j].getOutput() * trainSpeed;
+                    neurons[i].acceleration[j] *= momentumCoefficient;
+                    neurons[i].acceleration[j] += (1 - momentumCoefficient) * neurons[i].getError() * prevLayer.neurons[j].getOutput() * trainSpeed;
                     neurons[i].weights[j] += neurons[i].acceleration[j];
                 }
                 neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
