@@ -6,8 +6,9 @@ import com.aparapi.device.Device;
 import com.aparapi.exception.CompileFailedException;
 
 public class Layer {
-    private Layer prevLayer;
+    private final Layer prevLayer;
     private final double[] input;
+
 
     protected double[][] acceleration;
     protected double[][] weights;
@@ -39,6 +40,9 @@ public class Layer {
         error = new double[size];
         input = new double[0];
 
+        kernels = new Kernel[size];
+        threads = new Thread[size];
+
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < prevLayer.output.length; j++) weights[i][j] = Math.random() * 2 - 1;
             biasWeight[i] = Math.random() * 2 - 1;
@@ -58,6 +62,9 @@ public class Layer {
         output = new double[size];
         error = new double[size];
         input = new double[inputSize];
+
+        kernels = new Kernel[size];
+        threads = new Thread[size];
 
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < input.length; j++) weights[i][j] = Math.random() * 2 - 1;
@@ -117,22 +124,6 @@ public class Layer {
         }
     }
 
-    public void precompileCNW(double trainSpeed, double momentumCoefficient) {
-        kernels = new Kernel[output.length];
-        switch (type) {
-            case CPU2, CPU4, CPU8, CPU16 -> {
-                threads = new Thread[output.length];
-                for (int i = 0; i < output.length; i++)
-                    compileCPU_CNW(i, trainSpeed, momentumCoefficient);
-
-            }
-            case GPU -> {
-                kernels = new Kernel[output.length];
-                for (int i = 0; i < output.length; i++)
-                    compileGPU_CNW(i, trainSpeed, momentumCoefficient);
-            }
-        }
-    }
 
     private void compileCPU_CNW(int i, double trainSpeed, double momentumCoefficient) {
         if (firstLayer) {
@@ -156,48 +147,6 @@ public class Layer {
                 biasWeight[i] += error[i] * trainSpeed;
             });
             threads[i].setPriority(Thread.MAX_PRIORITY);
-        }
-    }
-    private void compileGPU_CNW(int i, double trainSpeed, double momentumCoefficient) {
-        double e = error[i];
-        double[] a = acceleration[i];
-        double[] w = acceleration[i];
-        try {
-            if (firstLayer) {
-                kernels[i] = new Kernel() {
-                    @Override
-                    public void run() {
-                        int id = getGlobalId();
-                        acceleration[i][id] *= momentumCoefficient;
-                        acceleration[i][id] += (1 - momentumCoefficient) * e * input[id] * trainSpeed;
-                        weights[i][id] += acceleration[i][id];
-                    }
-                };
-                kernels[i].setExplicit(true);
-                kernels[i].put(a);
-                kernels[i].put(w);
-                kernels[i].put(input);
-            }
-            else {
-                double[] out = prevLayer.output;
-                kernels[i] = new Kernel() {
-                    @Override
-                    public void run() {
-                        int id = getGlobalId();
-                        a[id] *= momentumCoefficient;
-                        a[id] += (1 - momentumCoefficient) * e * out[i] * trainSpeed;
-                        w[id] += a[id];
-                    }
-                };
-                kernels[i].setExplicit(true);
-                kernels[i].put(a);
-                kernels[i].put(w);
-                kernels[i].put(out);
-            }
-
-            kernels[i].compile(Device.bestGPU());
-        } catch (CompileFailedException ex) {
-            ex.printStackTrace();
         }
     }
 
@@ -242,7 +191,7 @@ public class Layer {
             case CPU4 -> CNWMulti(trainSpeed, momentumCoefficient, 4);
             case CPU8 -> CNWMulti(trainSpeed, momentumCoefficient, 8);
             case CPU16 -> CNWMulti(trainSpeed, momentumCoefficient, 16);
-            case GPU -> CNWGPU();
+            case GPU -> CNWGPU(trainSpeed, momentumCoefficient);
         }
     }
 
@@ -298,21 +247,73 @@ public class Layer {
         }
         while (threads[(output.length - 1) % numThreads].isAlive()) {}
     }
-    private void CNWGPU() {
-        if (firstLayer) for (int i = 0; i < output.length; i++) kernels[i].execute(input.length);
-        else for (int i = 0; i < output.length; i++) kernels[i].execute(prevLayer.output.length);
+    private void CNWGPU(double trainSpeed, double momentumCoefficient) {
 
-        boolean f;
-        do {
-            f = false;
-            for (int i = 0; i < kernels.length; i++) if (kernels[i].isExecuting()) f = true;
-        } while (f);
-        for (int i = 0; i < kernels.length; i++) {
-            double a[] = acceleration[i];
-            double w[] = acceleration[i];
-            kernels[i].get(a).get(w);
-            kernels[i].dispose();
+        if (firstLayer) {
+            double[] in = input;
+            for (int i = 0; i < output.length; i++) {
+                double[] a = acceleration[i];
+                double[] w = weights[i];
+                double e = error[i];
+                if (kernels[i] == null) {
+                    try {
+                        kernels[i] = new Kernel() {
+                            @Override
+                            public void run() {
+                                int id = getGlobalId();
+                                a[id] *= momentumCoefficient;
+                                a[id] += (1 - momentumCoefficient) * e * in[id] * trainSpeed;
+                                w[id] += a[id];
+                            }
+                        }.compile(Device.bestGPU());
+                    } catch (CompileFailedException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                kernels[i].setExplicit(true);
+                kernels[i].put(a);
+                kernels[i].put(w);
+                kernels[i].put(in);
 
+                kernels[i].execute(prevLayer.output.length);
+
+                kernels[i].get(a);
+                kernels[i].get(w);
+            }
+        }
+        else {
+            double[] in = prevLayer.output;
+            for (int i = 0; i < output.length; i++) {
+                double[] a = acceleration[i];
+                double[] w = weights[i];
+                double e = error[i];
+                if (kernels[i] == null) {
+                    try {
+                        kernels[i] = new Kernel() {
+                            @Override
+                            public void run() {
+                                int id = getGlobalId();
+                                a[id] *= momentumCoefficient;
+                                a[id] += (1 - momentumCoefficient) * e * in[id] * trainSpeed;
+                                w[id] += a[id];
+                            }
+                        }.compile(Device.bestGPU());
+                    } catch (CompileFailedException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+                kernels[i].setExplicit(true);
+                kernels[i].put(a);
+                kernels[i].put(w);
+                kernels[i].put(in);
+
+                kernels[i].execute(prevLayer.output.length);
+
+                kernels[i].get(a);
+                kernels[i].get(w);
+                acceleration[i] = a;
+                weights[i] = w;
+            }
         }
     }
 

@@ -70,11 +70,9 @@ public class LayeredNeuralNetwork {
 
     public void setTrainSpeed(double trainSpeed) {
         this.trainSpeed = trainSpeed;
-        for (Layer layer : layers) layer.precompileCNW(trainSpeed, momentumCoefficient);
     }
 
     public void setMomentumCoefficient(double momentumCoefficient) {
         this.momentumCoefficient = momentumCoefficient;
-        for (Layer layer : layers) layer.precompileCNW(trainSpeed, momentumCoefficient);
     }
 }
