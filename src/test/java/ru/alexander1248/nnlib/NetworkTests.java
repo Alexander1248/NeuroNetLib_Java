@@ -18,7 +18,7 @@ public class NetworkTests extends TestCase {
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 2);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 1);
         network.setTrainSpeed(0.1);
-        network.setMomentumCoefficient(0.9);
+        network.setMomentumCoefficient(0.7);
 
         double[] rr;
         double error;
@@ -39,7 +39,7 @@ public class NetworkTests extends TestCase {
             }
             error /= 100;
             epoch++;
-            if (epoch % 100 == 0) System.out.printf("Error: %1.1f\n", error);
+            if (epoch % 10000 == 0) System.out.printf("Error: %3.2f\n", error);
         } while (error > 0.05);
         System.out.println();
         for (double y = 0; y < 1; y += 0.1) {
