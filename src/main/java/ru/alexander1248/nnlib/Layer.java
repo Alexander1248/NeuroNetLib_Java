@@ -80,74 +80,7 @@ public class Layer {
         return Double.MIN_EXPONENT;
     }
     public Layer getPrevLayer() {
-       return prevLayer;
-    }
-
-
-    public void precompileCL() {
-        kernels = new Kernel[output.length];
-        switch (type) {
-            case CPU1, CPU2, CPU4, CPU8, CPU16 -> {
-                threads = new Thread[output.length];
-                for (int i = 0; i < output.length; i++)
-                    compileCPU_CL(i);
-            }
-            case GPU -> {
-                kernels = new Kernel[output.length];
-                for (int i = 0; i < output.length; i++)
-                    compileGPU_CL(i);
-            }
-        }
-    }
-
-    private void compileCPU_CL(int i) {
-        threads[i] = new Thread(() -> {
-            weightedSum[i] = 0;
-            for (int j = 0; j < input.length; j++) weightedSum[i] += input[j] * weights[i][j];
-            weightedSum[i] += biasWeight[i];
-            output[i] = ActivationFunction.GetFunction(function, weightedSum[i]);
-        });
-    }
-    private void compileGPU_CL(int i) {
-        try {
-            kernels[i] = new Kernel() {
-                @Override
-                public void run() {
-                    weightedSum[i] = 0;
-                    for (int j = 0; j < input.length; j++) weightedSum[i] += input[j] * weights[i][j];
-                    weightedSum[i] += biasWeight[i];
-                    output[i] = ActivationFunction.GetFunction(function, weightedSum[i]);
-                }
-            }.compile(Device.bestGPU());
-        } catch (CompileFailedException ex) {
-            ex.printStackTrace();
-        }
-    }
-
-
-    private void compileCPU_CNW(int i, double trainSpeed, double momentumCoefficient) {
-        if (firstLayer) {
-            threads[i] = new Thread(() -> {
-                for (int j = 0; j < input.length; j++) {
-                    acceleration[i][j] *= momentumCoefficient;
-                    acceleration[i][j] += (1 - momentumCoefficient) * error[i] * input[j] * trainSpeed;
-                    weights[i][j] += acceleration[i][j];
-                }
-                biasWeight[i] += error[i] * trainSpeed;
-            });
-            threads[i].setPriority(Thread.MAX_PRIORITY);
-        }
-        else {
-            threads[i] = new Thread(() -> {
-                for (int j = 0; j < input.length; j++) {
-                    acceleration[i][j] *= momentumCoefficient;
-                    acceleration[i][j] += (1 - momentumCoefficient) * error[i] * prevLayer.output[j] * trainSpeed;
-                    weights[i][j] += acceleration[i][j];
-                }
-                biasWeight[i] += error[i] * trainSpeed;
-            });
-            threads[i].setPriority(Thread.MAX_PRIORITY);
-        }
+        return prevLayer;
     }
 
     public void calculateLayer() {
@@ -218,34 +151,7 @@ public class Layer {
         }
     }
     private void CNWMulti(double trainSpeed, double momentumCoefficient, int numThreads) {
-        Thread[] threads = new Thread[numThreads];
-        if (firstLayer) {
-            int t = 0;
-            for (int i = 0; i < output.length; i++) {
-                if (threads[i] == null) compileCPU_CNW(i, trainSpeed, momentumCoefficient);
-                while (threads[i].isAlive()) {}
-                t++;
-                threads[i].start();
-            }
-        }
-        else {
-            for (int i = 0; i < output.length; i++) {
-                int ti = i % numThreads;
-                while (threads[ti] != null && threads[ti].isAlive()) {}
-                int finalI = i;
-                threads[ti] = new Thread(() -> {
-                    for (int j = 0; j < prevLayer.output.length; j++) {
-                        acceleration[finalI][j] *= momentumCoefficient;
-                        acceleration[finalI][j] += (1 - momentumCoefficient) * error[finalI] * prevLayer.output[j] * trainSpeed;
-                        weights[finalI][j] += acceleration[finalI][j];
-                    }
-                    biasWeight[finalI] += error[finalI] * trainSpeed;
-                });
-                threads[ti].setPriority(Thread.MAX_PRIORITY);
-                threads[ti].start();
-            }
-        }
-        while (threads[(output.length - 1) % numThreads].isAlive()) {}
+
     }
     private void CNWGPU(double trainSpeed, double momentumCoefficient) {
 

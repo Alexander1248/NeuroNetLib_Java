@@ -25,18 +25,22 @@ public class NetworkTests extends TestCase {
         double error;
         int epoch = 0;
         do {
-            double x = Math.random();
-            double y = Math.random();
-            rr = new double[]{(int) (Math.round(x) + Math.round(y)) % 2};
+            error = 0;
+            for (int i = 0; i < 100; i++) {
+                double x = Math.random();
+                double y = Math.random();
+                rr = new double[]{(int) (Math.round(x) + Math.round(y)) % 2};
 
-            network.setInput(0, x);
-            network.setInput(1, y);
-            network.calculateNet();
-            network.calculateError(rr);
-            network.calculateNewWeights();
-            error = network.getError(rr);
+                network.setInput(0, x);
+                network.setInput(1, y);
+                network.calculateNet();
+                network.calculateError(rr);
+                network.calculateNewWeights();
+                error += network.getError(rr);
+            }
+            error /= 100;
             epoch++;
-            if (epoch % 10000 == 0) System.out.printf("Error: %1.1f\n", error);
+            if (epoch % 100 == 0) System.out.printf("Error: %1.1f\n", error);
         } while (error > 0.05);
         System.out.println();
         for (double y = 0; y < 1; y += 0.1) {
