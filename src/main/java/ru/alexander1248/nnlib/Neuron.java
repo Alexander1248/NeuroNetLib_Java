@@ -18,6 +18,7 @@ public class Neuron {
     private final int[] links;
 
     protected double recurrent;
+    private boolean rec;
 
 
     public Neuron(AFunction function, int size, boolean reccurent) {
@@ -32,6 +33,7 @@ public class Neuron {
         }
         biasWeight = Math.random() * 2 - 1;
         this.recurrent = reccurent ? Math.random() * 2 - 1 : 0;
+        rec = reccurent;
     }
     public Neuron(AFunction function, int[] links, boolean reccurent) {
         this.function = function;
@@ -42,6 +44,7 @@ public class Neuron {
         for (int i = 0; i < input.length; i++) weights[i] = Math.random() * 2 - 1;
         biasWeight = Math.random() * 2 - 1;
         this.recurrent = reccurent ? Math.random() * 2 - 1 : 0;
+        rec = reccurent;
     }
     //Getters
     public double[] getInput() {
@@ -115,7 +118,9 @@ public class Neuron {
 
     public void mutate(double coefficient) {
         if (Math.random() < coefficient) biasWeight = Math.random() * 2 - 1;
+        if (rec && Math.random() < coefficient) recurrent = Math.random() * 2 - 1;
         for (int i = 0; i < weights.length; i++)
             if (Math.random() < coefficient) weights[i] = Math.random() * 2 - 1;
+
     }
 }

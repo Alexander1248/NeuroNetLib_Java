@@ -84,13 +84,14 @@ public class Layer {
 
     public void calculateOutLayerError(double[] rightResults) {
         for (int i = 0; i < neurons.length; i++)
-            neurons[i].setError((rightResults[i] - neurons[i].getOutput()) * ActivationFunction.GetDerivative(neurons[i].getFunction(),neurons[i].getWeightedSum()));
+            neurons[i].setError((rightResults[i] - neurons[i].getOutput()) * ActivationFunction.GetDerivative(neurons[i].getFunction(), neurons[i].getWeightedSum()));
     }
     public void calculateInOrHiddenLayerError(Layer postLayer) {
         for (int i = 0; i < neurons.length; i++) {
             double error = 0;
             for (int j = 0; j < postLayer.neurons.length; j++) {
                 error += postLayer.neurons[j].weights[i] * postLayer.neurons[j].getError();
+                error += recurrent * postLayer.neurons[j].recurrent * postLayer.neurons[j].getError();
             }
             neurons[i].setError(error * ActivationFunction.GetDerivative(neurons[i].getFunction(),neurons[i].getWeightedSum()));
         }
