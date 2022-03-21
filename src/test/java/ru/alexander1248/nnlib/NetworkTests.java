@@ -3,6 +3,8 @@ package ru.alexander1248.nnlib;
 
 import junit.framework.TestCase;
 import ru.alexander1248.logger.TableLogger;
+import ru.alexander1248.nnlib.main.AFunction;
+import ru.alexander1248.nnlib.main.LayeredNeuralNetwork;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

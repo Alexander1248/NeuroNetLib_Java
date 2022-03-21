@@ -1,8 +1,6 @@
-package ru.alexander1248.nnlib;
+package ru.alexander1248.nnlib.main;
 
 import com.aparapi.Kernel;
-import com.aparapi.internal.opencl.OpenCLKernel;
-import ru.alexander1248.nnlib.Neuron;
 
 public class Layer {
     private Layer prevLayer;

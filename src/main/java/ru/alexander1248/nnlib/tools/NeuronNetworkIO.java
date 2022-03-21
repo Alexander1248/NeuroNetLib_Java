@@ -1,4 +1,7 @@
-package ru.alexander1248.nnlib;
+package ru.alexander1248.nnlib.tools;
+
+import ru.alexander1248.nnlib.main.AFunction;
+import ru.alexander1248.nnlib.main.LayeredNeuralNetwork;
 
 import java.io.File;
 import java.io.FileNotFoundException;

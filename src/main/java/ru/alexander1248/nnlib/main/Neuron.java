@@ -1,7 +1,4 @@
-package ru.alexander1248.nnlib;
-
-import java.util.Arrays;
-import java.util.Objects;
+package ru.alexander1248.nnlib.main;
 
 public class Neuron {
     private AFunction function;

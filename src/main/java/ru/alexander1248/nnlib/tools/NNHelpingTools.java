@@ -1,4 +1,4 @@
-package ru.alexander1248.nnlib;
+package ru.alexander1248.nnlib.tools;
 
 public class NNHelpingTools {
     private NNHelpingTools() {}
