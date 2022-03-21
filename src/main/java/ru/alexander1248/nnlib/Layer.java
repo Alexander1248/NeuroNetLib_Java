@@ -9,40 +9,41 @@ public class Layer {
     private AFunction function;
     boolean firstLayer;
 
-    public Layer(AFunction function, Layer prevLayer, int size) {
+    private int recurrent;
+    public Layer(AFunction function, Layer prevLayer, int size, boolean reccurent) {
         firstLayer = false;
         this.prevLayer = prevLayer;
         neurons = new Neuron[size];
-        for (int i = 0; i < size; i++) neurons[i] = new Neuron(function, prevLayer.neurons.length);
+        for (int i = 0; i < size; i++) neurons[i] = new Neuron(function, prevLayer.neurons.length, reccurent);
         this.function = function;
     }
-    public Layer(AFunction function, int InputSize, int size) {
+    public Layer(AFunction function, int InputSize, int size, boolean reccurent) {
         firstLayer = true;
         input = new double[InputSize];
         neurons = new Neuron[size];
-        for (int i = 0; i < size; i++) neurons[i] = new Neuron(function, InputSize);
+        for (int i = 0; i < size; i++) neurons[i] = new Neuron(function, InputSize, reccurent);
         this.function = function;
     }
 
-    public Layer(AFunction function, boolean[][] links) {
+    public Layer(AFunction function, boolean[][] links, boolean reccurent) {
         firstLayer = true;
         input = new double[links[0].length];
         neurons = new Neuron[links.length];
         for (int i = 0; i < links.length; i++) {
             int[] l = new int[links[i].length];
             for (int j = 0; j < links[i].length; j++) l[j] = links[i][j] ? 1 : 0;
-            neurons[i] = new Neuron(function, l);
+            neurons[i] = new Neuron(function, l, reccurent);
         }
         this.function = function;
     }
-    public Layer(AFunction function, Layer prevLayer, boolean[][] links) {
+    public Layer(AFunction function, Layer prevLayer, boolean[][] links, boolean reccurent) {
         firstLayer = false;
         this.prevLayer = prevLayer;
         neurons = new Neuron[links.length];
         for (int i = 0; i < links.length; i++) {
             int[] l = new int[links[i].length];
             for (int j = 0; j < links[i].length; j++) l[j] = links[i][j] ? 1 : 0;
-            neurons[i] = new Neuron(function, l);
+            neurons[i] = new Neuron(function, l, reccurent);
         }
         this.function = function;
     }
@@ -104,6 +105,7 @@ public class Layer {
                     neurons[i].weights[j] += neurons[i].getLinks()[j] * neurons[i].acceleration[j];
                 }
                 neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
+                neurons[i].recurrent += recurrent * neurons[i].getError() * neurons[i].getOutput() * trainSpeed;
             }
         }
         else {
@@ -114,6 +116,7 @@ public class Layer {
                     neurons[i].weights[j] += neurons[i].getLinks()[j] * neurons[i].acceleration[j];
                 }
                 neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
+                neurons[i].recurrent += recurrent * neurons[i].getError() * neurons[i].getOutput() * trainSpeed;
             }
         }
     }
@@ -129,5 +132,9 @@ public class Layer {
     public void mutate(double coefficient) {
         for (int i = 0; i < 10; i++)
             neurons[(int) (Math.random() * neurons.length)].mutate(coefficient / 10);
+    }
+
+    public boolean getRecurrent() {
+        return recurrent == 1;
     }
 }

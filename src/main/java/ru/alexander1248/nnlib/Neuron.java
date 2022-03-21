@@ -17,8 +17,10 @@ public class Neuron {
 
     private final int[] links;
 
+    protected double recurrent;
 
-    public Neuron(AFunction function, int size) {
+
+    public Neuron(AFunction function, int size, boolean reccurent) {
         this.function = function;
         input = new double[size];
         weights = new double[size];
@@ -29,8 +31,9 @@ public class Neuron {
             weights[i] = Math.random() * 2 - 1;
         }
         biasWeight = Math.random() * 2 - 1;
+        this.recurrent = reccurent ? Math.random() * 2 - 1 : 0;
     }
-    public Neuron(AFunction function, int[] links) {
+    public Neuron(AFunction function, int[] links, boolean reccurent) {
         this.function = function;
         input = new double[links.length];
         weights = new double[links.length];
@@ -38,6 +41,7 @@ public class Neuron {
         this.links = links.clone();
         for (int i = 0; i < input.length; i++) weights[i] = Math.random() * 2 - 1;
         biasWeight = Math.random() * 2 - 1;
+        this.recurrent = reccurent ? Math.random() * 2 - 1 : 0;
     }
     //Getters
     public double[] getInput() {
@@ -103,7 +107,7 @@ public class Neuron {
     //                 Math
     //========================================
     public void calculateNeuron() {
-        weightedSum = 0;
+        weightedSum = output * recurrent;
         for(int i = 0; i < input.length; i++) weightedSum += input[i] * links[i] * weights[i];
         weightedSum += biasWeight;
         output = ActivationFunction.GetFunction(function, weightedSum);

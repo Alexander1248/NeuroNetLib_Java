@@ -16,10 +16,12 @@ public class NeuronNetworkIO {
             writer.write(network.getLayers().get(0).getFunction().name() + " ");
             writer.write(network.getLayers().get(0).getNeurons().length + " ");
             writer.write(network.getLayers().get(0).getInputSize() + " ");
+            writer.write(network.getLayers().get(0).getReccurency() + " ");
 
             for (int l = 1; l < network.getLayers().size(); l++) {
                 writer.write(network.getLayers().get(l).getFunction().name() + " ");
                 writer.write(network.getLayers().get(l).getNeurons().length + " ");
+                writer.write(network.getLayers().get(0).getReccurency() + " ");
             }
 
             for (int l = 0; l < network.getLayers().size(); l++) {
@@ -41,9 +43,9 @@ public class NeuronNetworkIO {
             Scanner reader = new Scanner(new File(filename + ".nwd"));
             reader.useLocale(Locale.UK);
             LayeredNeuralNetwork network = new LayeredNeuralNetwork();
-            network.initInLayer(AFunction.valueOf(reader.next()), reader.nextInt(), reader.nextInt());
+            network.initInLayer(AFunction.valueOf(reader.next()), reader.nextInt(), reader.nextInt(), reader.nextBoolean());
             for (int l = 1; l < network.getLayers().size(); l++)
-                network.initHiddenOrOutLayer(AFunction.valueOf(reader.next()), reader.nextInt());
+                network.initHiddenOrOutLayer(AFunction.valueOf(reader.next()), reader.nextInt(), reader.nextBoolean());
 
             for (int l = 0; l < network.getLayers().size(); l++) {
                 for (int n = 0; n < network.getLayers().get(l).getNeurons().length; n++) {
