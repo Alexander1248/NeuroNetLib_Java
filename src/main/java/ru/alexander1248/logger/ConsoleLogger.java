@@ -1,14 +1,12 @@
 package ru.alexander1248.logger;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class Console {
+public class ConsoleLogger {
     static private final SimpleDateFormat formatDate = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss:S");
 
-    private Console() {}
+    private ConsoleLogger() {}
     static public void i(String msg) {
         Date date = new Date();
         System.out.println(formatDate.format(date) + " INFO - " + msg);

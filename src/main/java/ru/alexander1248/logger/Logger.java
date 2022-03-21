@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class Log {
+public class Logger {
     static private final SimpleDateFormat formatDate = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss:S");
     private static boolean append = false;
 
-    private Log() {}
+    private Logger() {}
 
     static public void append(boolean appending) {
         append = appending;
