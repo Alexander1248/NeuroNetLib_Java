@@ -9,18 +9,41 @@ public class Layer {
     private AFunction function;
     boolean firstLayer;
 
-    public Layer(Layer prevLayer, AFunction function, int size) {
+    public Layer(AFunction function, Layer prevLayer, int size) {
         firstLayer = false;
         this.prevLayer = prevLayer;
         neurons = new Neuron[size];
         for (int i = 0; i < size; i++) neurons[i] = new Neuron(function, prevLayer.neurons.length);
         this.function = function;
     }
-    public Layer(int InputSize, AFunction function, int size) {
+    public Layer(AFunction function, int InputSize, int size) {
         firstLayer = true;
         input = new double[InputSize];
         neurons = new Neuron[size];
         for (int i = 0; i < size; i++) neurons[i] = new Neuron(function, InputSize);
+        this.function = function;
+    }
+
+    public Layer(AFunction function, boolean[][] links) {
+        firstLayer = true;
+        input = new double[links[0].length];
+        neurons = new Neuron[links.length];
+        for (int i = 0; i < links.length; i++) {
+            int[] l = new int[links[i].length];
+            for (int j = 0; j < links[i].length; j++) l[j] = links[i][j] ? 1 : 0;
+            neurons[i] = new Neuron(function, l);
+        }
+        this.function = function;
+    }
+    public Layer(AFunction function, Layer prevLayer, boolean[][] links) {
+        firstLayer = false;
+        this.prevLayer = prevLayer;
+        neurons = new Neuron[links.length];
+        for (int i = 0; i < links.length; i++) {
+            int[] l = new int[links[i].length];
+            for (int j = 0; j < links[i].length; j++) l[j] = links[i][j] ? 1 : 0;
+            neurons[i] = new Neuron(function, l);
+        }
         this.function = function;
     }
 
@@ -77,7 +100,7 @@ public class Layer {
             for (int i = 0; i < neurons.length; i++) {
                 for (int j = 0; j < prevLayer.neurons.length; j++) {
                     neurons[i].acceleration[j] *= momentumCoefficient;
-                    neurons[i].acceleration[j] += (1 - momentumCoefficient) * neurons[i].getError() * input[j] * trainSpeed;
+                    neurons[i].acceleration[j] += neurons[i].getLinks()[j] * (1 - momentumCoefficient) * neurons[i].getError() * input[j] * trainSpeed;
                     neurons[i].weights[j] += neurons[i].acceleration[j];
                 }
                 neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
@@ -87,7 +110,7 @@ public class Layer {
             for (int i = 0; i < neurons.length; i++) {
                 for (int j = 0; j < prevLayer.neurons.length; j++) {
                     neurons[i].acceleration[j] *= momentumCoefficient;
-                    neurons[i].acceleration[j] += (1 - momentumCoefficient) * neurons[i].getError() * prevLayer.neurons[j].getOutput() * trainSpeed;
+                    neurons[i].acceleration[j] += neurons[i].getLinks()[j] * (1 - momentumCoefficient) * neurons[i].getError() * prevLayer.neurons[j].getOutput() * trainSpeed;
                     neurons[i].weights[j] += neurons[i].acceleration[j];
                 }
                 neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
@@ -98,7 +121,6 @@ public class Layer {
     public int getInputSize() {
         return input.length;
     }
-
 
     public AFunction getFunction() {
         return function;

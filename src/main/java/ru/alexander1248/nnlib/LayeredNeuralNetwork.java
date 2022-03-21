@@ -16,11 +16,20 @@ public class LayeredNeuralNetwork {
     }
 
     public void initHiddenOrOutLayer(AFunction function, int size) {
-        Layer layer = new Layer(layers.get(layers.size() - 1),function,size);
+        Layer layer = new Layer(function, layers.get(layers.size() - 1), size);
         layers.add(layer);
     }
+    public void initInLayer(AFunction function, boolean[][] links){
+        Layer layer = new Layer(function, links);
+        layers.add(layer);
+    }
+
     public void initInLayer(AFunction function, int size, int inputSize){
-        Layer layer = new Layer(inputSize,function,size);
+        Layer layer = new Layer(function, inputSize, size);
+        layers.add(layer);
+    }
+    public void initHiddenOrOutLayer(AFunction function, boolean[][] links) {
+        Layer layer = new Layer(function, layers.get(layers.size() - 1), links);
         layers.add(layer);
     }
 

@@ -15,20 +15,27 @@ public class Neuron {
     private double output;
     private double error;
 
+    private final int[] links;
+
 
     public Neuron(AFunction function, int size) {
         this.function = function;
         input = new double[size];
         weights = new double[size];
         acceleration = new double[size];
-        for (int i = 0; i < input.length; i++) weights[i] = Math.random() * 2 - 1;
+        this.links = new int[size];
+        for (int i = 0; i < input.length; i++) {
+            links[i] = 1;
+            weights[i] = Math.random() * 2 - 1;
+        }
         biasWeight = Math.random() * 2 - 1;
     }
-    public Neuron(AFunction function, boolean[] links) {
+    public Neuron(AFunction function, int[] links) {
         this.function = function;
         input = new double[links.length];
         weights = new double[links.length];
         acceleration = new double[links.length];
+        this.links = links.clone();
         for (int i = 0; i < input.length; i++) weights[i] = Math.random() * 2 - 1;
         biasWeight = Math.random() * 2 - 1;
     }
@@ -83,6 +90,10 @@ public class Neuron {
 
     public void setError(double error) { this.error = error; }
 
+    public int[] getLinks() {
+        return links;
+    }
+
     //Modifiers
     public void modifyWeights(int i, double weightDelta) {
         weights[i] += weightDelta;
@@ -93,7 +104,7 @@ public class Neuron {
     //========================================
     public void calculateNeuron() {
         weightedSum = 0;
-        for(int i = 0; i < input.length; i++) weightedSum += input[i] * weights[i];
+        for(int i = 0; i < input.length; i++) weightedSum += input[i] * links[i] * weights[i];
         weightedSum += biasWeight;
         output = ActivationFunction.GetFunction(function, weightedSum);
     }
