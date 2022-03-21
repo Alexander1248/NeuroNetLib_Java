@@ -2,7 +2,7 @@ package ru.alexander1248.nnlib;
 
 
 import junit.framework.TestCase;
-import ru.alexander1248.logger.ChartLogger;
+import ru.alexander1248.logger.TableLogger;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class NetworkTests extends TestCase {
-    ChartLogger logger;
+    TableLogger logger;
 
     public void testXOR() {
         LayeredNeuralNetwork network = new LayeredNeuralNetwork();
@@ -20,7 +20,7 @@ public class NetworkTests extends TestCase {
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 1);
         network.setTrainSpeed(0.05);
         network.setMomentumCoefficient(0.8);
-        logger = new ChartLogger("XOR", "epoch", "error");
+        logger = new TableLogger("XOR", "epoch", "error");
 
         double[] rr;
         double error;
@@ -64,7 +64,7 @@ public class NetworkTests extends TestCase {
         network.initInLayer(AFunction.Sigmoid, 28 * 14, 28 * 28);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 28 * 28);
         network.setTrainSpeed(0.005);
-        logger = new ChartLogger("Compressor", "epoch", "error");
+        logger = new TableLogger("Compressor", "epoch", "error");
 
         double error = 0;
         int epoch = 0;
@@ -124,7 +124,7 @@ public class NetworkTests extends TestCase {
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 7 * 7);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 10);
         network.setTrainSpeed(0.001);
-        logger = new ChartLogger("Recognition", "epoch", "error");
+        logger = new TableLogger("Recognition", "epoch", "error");
 
         double error = 0;
         int epoch = 0;
@@ -183,7 +183,7 @@ public class NetworkTests extends TestCase {
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 14 * 14);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 28 * 28);
         network.setTrainSpeed(0.001);
-        logger = new ChartLogger("Creation", "epoch", "error");
+        logger = new TableLogger("Creation", "epoch", "error");
 
         double error = 0;
         int epoch = 0;

@@ -2,12 +2,11 @@ package ru.alexander1248.logger;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Locale;
 
-public class ChartLogger {
+public class TableLogger {
     private FileWriter writer;
 
-    public ChartLogger(String filename, String xName, String yName) {
+    public TableLogger(String filename, String xName, String yName) {
         try {
             writer = new FileWriter(filename + ".csv");
             writer.write(xName + "," + yName + "\n");

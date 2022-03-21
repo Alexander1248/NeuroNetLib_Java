@@ -70,7 +70,7 @@ public class LayeredNeuralNetwork {
 
     public void mutate(double coefficient) {
         for (int i = 0; i < 10; i++)
-            layers.get((int) (Math.random() * layers.size())).mutate(coefficient);
+            layers.get((int) (Math.random() * layers.size())).mutate(coefficient / 10);
     }
 
     public LayeredNeuralNetwork clone() {
@@ -84,6 +84,8 @@ public class LayeredNeuralNetwork {
                 network.getLayers().get(l).getNeurons()[n].biasWeight = layers.get(l).getNeurons()[n].biasWeight;
             }
         }
+        network.setTrainSpeed(trainSpeed);
+        network.setMomentumCoefficient(momentumCoefficient);
         return network;
     }
 }

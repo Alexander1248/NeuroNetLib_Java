@@ -106,6 +106,6 @@ public class Layer {
 
     public void mutate(double coefficient) {
         for (int i = 0; i < 10; i++)
-            neurons[(int) (Math.random() * neurons.length)].mutate(coefficient);
+            neurons[(int) (Math.random() * neurons.length)].mutate(coefficient / 10);
     }
 }
