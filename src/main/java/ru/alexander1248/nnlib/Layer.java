@@ -1,242 +1,170 @@
 package ru.alexander1248.nnlib;
 
-
-import com.aparapi.Kernel;
-import com.aparapi.device.Device;
-import com.aparapi.exception.CompileFailedException;
+import com.aparapi.internal.opencl.OpenCLKernel;
+import ru.alexander1248.nnlib.Neuron;
 
 public class Layer {
-    private final Layer prevLayer;
-    private final double[] input;
+    private Layer prevLayer;
+    private double[] input;
+    private Neuron[] neurons;
+    private AFunction function;
+    boolean firstLayer;
 
+    private CalculatingType type = CalculatingType.CPU;
 
-    protected double[][] acceleration;
-    protected double[][] weights;
-    protected double[] biasWeight;
+    private int recurrent;
 
-    private final double[] weightedSum;
-    private final double[] output;
-    private final double[] error;
-
-    private final AFunction function;
-    private final boolean firstLayer;
-
-    private Kernel[] kernels;
-    private Thread[] threads;
-
-    private CalculatingType type = CalculatingType.CPU1;
-
-    public Layer(Layer prevLayer, AFunction function, int size) {
+    public Layer(AFunction function, Layer prevLayer, int size, boolean reccurent) {
         firstLayer = false;
         this.prevLayer = prevLayer;
+        neurons = new Neuron[size];
+        for (int i = 0; i < size; i++) neurons[i] = new Neuron(function, prevLayer.neurons.length, reccurent);
         this.function = function;
+    }
+    public Layer(AFunction function, int InputSize, int size, boolean reccurent) {
+        firstLayer = true;
+        input = new double[InputSize];
+        neurons = new Neuron[size];
+        for (int i = 0; i < size; i++) neurons[i] = new Neuron(function, InputSize, reccurent);
+        this.function = function;
+    }
 
-        acceleration = new double[size][prevLayer.output.length];
-        weights = new double[size][prevLayer.output.length];
-        biasWeight = new double[size];
+    public Layer(AFunction function, boolean[][] links, boolean reccurent) {
+        firstLayer = true;
+        input = new double[links[0].length];
+        neurons = new Neuron[links.length];
+        for (int i = 0; i < links.length; i++) {
+            int[] l = new int[links[i].length];
+            for (int j = 0; j < links[i].length; j++) l[j] = links[i][j] ? 1 : 0;
+            neurons[i] = new Neuron(function, l, reccurent);
+        }
+        this.function = function;
+    }
+    public Layer(AFunction function, Layer prevLayer, boolean[][] links, boolean reccurent) {
+        firstLayer = false;
+        this.prevLayer = prevLayer;
+        neurons = new Neuron[links.length];
+        for (int i = 0; i < links.length; i++) {
+            int[] l = new int[links[i].length];
+            for (int j = 0; j < links[i].length; j++) l[j] = links[i][j] ? 1 : 0;
+            neurons[i] = new Neuron(function, l, reccurent);
+        }
+        this.function = function;
+    }
 
-        weightedSum = new double[size];
-        output = new double[size];
-        error = new double[size];
-        input = new double[0];
 
-        kernels = new Kernel[size];
-        threads = new Thread[size];
+    private void CL_CPU() {
+        if (firstLayer) {
+            for (int i = 0; i < neurons.length; i++) {
+                for (int j = 0; j < input.length; j++)
+                    neurons[i].setInput(j, input[j]);
+                neurons[i].calculateNeuron();
+            }
+        } else {
+            for (int i = 0; i < neurons.length; i++) {
+                for (int j = 0; j < prevLayer.neurons.length; j++)
+                    neurons[i].setInput(j, prevLayer.neurons[j].getOutput());
+                neurons[i].calculateNeuron();
+            }
+        }
+    }
+    private void CL_GPU() {
+        if (firstLayer) {
+            for (int i = 0; i < neurons.length; i++) {
+                for (int j = 0; j < input.length; j++)
+                    neurons[i].setInput(j, input[j]);
+                neurons[i].calculateNeuron();
+            }
+        } else {
+            for (int i = 0; i < neurons.length; i++) {
+                for (int j = 0; j < prevLayer.neurons.length; j++)
+                    neurons[i].setInput(j, prevLayer.neurons[j].getOutput());
+                neurons[i].calculateNeuron();
+            }
+        }
+    }
 
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < prevLayer.output.length; j++) weights[i][j] = Math.random() * 2 - 1;
-            biasWeight[i] = Math.random() * 2 - 1;
+    public void calculateLayer() {
+        switch (type) {
+            case CPU -> CL_CPU();
+            case GPU -> CL_GPU();
         }
 
     }
-    public Layer(int inputSize, AFunction function, int size) {
-        firstLayer = true;
-        prevLayer = null;
-        this.function = function;
 
-        acceleration = new double[size][inputSize];
-        weights = new double[size][inputSize];
-        biasWeight = new double[size];
-
-        weightedSum = new double[size];
-        output = new double[size];
-        error = new double[size];
-        input = new double[inputSize];
-
-        kernels = new Kernel[size];
-        threads = new Thread[size];
-
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < input.length; j++) weights[i][j] = Math.random() * 2 - 1;
-            biasWeight[i] = Math.random() * 2 - 1;
+    public void calculateOutLayerError(double[] rightResults) {
+        for (int i = 0; i < neurons.length; i++)
+            neurons[i].setError((rightResults[i] - neurons[i].getOutput()) * ActivationFunction.GetDerivative(neurons[i].getFunction(), neurons[i].getWeightedSum()));
+    }
+    public void calculateInOrHiddenLayerError(Layer postLayer) {
+        for (int i = 0; i < neurons.length; i++) {
+            double error = 0;
+            for (int j = 0; j < postLayer.neurons.length; j++) {
+                error += postLayer.neurons[j].weights[i] * postLayer.neurons[j].getError();
+                error += recurrent * postLayer.neurons[j].recurrent * postLayer.neurons[j].getError();
+            }
+            neurons[i].setError(error * ActivationFunction.GetDerivative(neurons[i].getFunction(),neurons[i].getWeightedSum()));
         }
+    }
+
+    public void calculateNewWeights(double trainSpeed, double momentumCoefficient) {
+        if (firstLayer) {
+            for (int i = 0; i < neurons.length; i++) {
+                for (int j = 0; j < prevLayer.neurons.length; j++) {
+                    neurons[i].acceleration[j] *= momentumCoefficient;
+                    neurons[i].acceleration[j] += neurons[i].getLinks()[j] * (1 - momentumCoefficient) * neurons[i].getError() * input[j] * trainSpeed;
+                    neurons[i].weights[j] += neurons[i].getLinks()[j] * neurons[i].acceleration[j];
+                }
+                neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
+                neurons[i].recurrent += recurrent * neurons[i].getError() * neurons[i].getOutput() * trainSpeed;
+            }
+        }
+        else {
+            for (int i = 0; i < neurons.length; i++) {
+                for (int j = 0; j < prevLayer.neurons.length; j++) {
+                    neurons[i].acceleration[j] *= momentumCoefficient;
+                    neurons[i].acceleration[j] += (1 - momentumCoefficient) * neurons[i].getError() * prevLayer.neurons[j].getOutput() * trainSpeed;
+                    neurons[i].weights[j] += neurons[i].getLinks()[j] * neurons[i].acceleration[j];
+                }
+                neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
+                neurons[i].recurrent += recurrent * neurons[i].getError() * neurons[i].getOutput() * trainSpeed;
+            }
+        }
+    }
+
+
+    public void mutate(double coefficient) {
+        for (int i = 0; i < 10; i++)
+            neurons[(int) (Math.random() * neurons.length)].mutate(coefficient / 10);
+    }
+
+
+
+    public int getInputSize() {
+        return input.length;
+    }
+    public double getOutput(int i) {
+        if (i >= 0 && i < this.neurons.length) return neurons[i].getOutput();
+        return Double.MIN_EXPONENT;
+    }
+    public Neuron[] getNeurons() {
+        return neurons;
+    }
+    public AFunction getFunction() {
+        return function;
+    }
+    public boolean getRecurrency() {
+        return recurrent == 1;
+    }
+    public Layer getPrevLayer() {
+        if(!firstLayer) return prevLayer;
+        else return null;
     }
 
     public void setInput(int i, double input) {
         if (firstLayer && i >= 0 && i < this.input.length) this.input[i] = input;
     }
-    public double getOutput(int i) {
-        if (i >= 0 && i < output.length) return output[i];
-        return Double.MIN_EXPONENT;
-    }
-    public Layer getPrevLayer() {
-        return prevLayer;
-    }
-
-    public void calculateLayer() {
-        CLMono();
-    }
-    public void CLMono() {
-        if (firstLayer) {
-            for (int i = 0; i < output.length; i++) {
-                weightedSum[i] = 0;
-                for (int j = 0; j < input.length; j++) weightedSum[i] += input[j] * weights[i][j];
-                weightedSum[i] += biasWeight[i];
-                output[i] = ActivationFunction.GetFunction(function, weightedSum[i]);
-            }
-        } else {
-            for (int i = 0; i < output.length; i++) {
-                weightedSum[i] = 0;
-                for (int j = 0; j <  prevLayer.output.length; j++) weightedSum[i] += prevLayer.output[j] * weights[i][j];
-                weightedSum[i] += biasWeight[i];
-                output[i] = ActivationFunction.GetFunction(function, weightedSum[i]);
-            }
-        }
-    }
-
-    public void calculateOutLayerError(double[] rightResults) {
-        for (int i = 0; i < error.length; i++)
-            error[i] = (rightResults[i] - output[i]) * ActivationFunction.GetDerivative(function, weightedSum[i]);
-    }
-    public void calculateInOrHiddenLayerError(Layer postLayer) {
-        for (int i = 0; i < output.length; i++) {
-            double err = 0;
-            for (int j = 0; j < postLayer.output.length; j++) {
-                err += postLayer.weights[j][i] * postLayer.error[j];
-            }
-            error[i] = err * ActivationFunction.GetDerivative(function, weightedSum[i]);
-        }
-    }
-    public void calculateNewWeights(double trainSpeed, double momentumCoefficient) {
-        switch (type) {
-            case CPU1 -> CNWMono(trainSpeed, momentumCoefficient);
-            case CPU2 -> CNWMulti(trainSpeed, momentumCoefficient, 2);
-            case CPU4 -> CNWMulti(trainSpeed, momentumCoefficient, 4);
-            case CPU8 -> CNWMulti(trainSpeed, momentumCoefficient, 8);
-            case CPU16 -> CNWMulti(trainSpeed, momentumCoefficient, 16);
-            case GPU -> CNWGPU(trainSpeed, momentumCoefficient);
-        }
-    }
-
-    private void CNWMono(double trainSpeed, double momentumCoefficient) {
-        if (firstLayer) {
-            for (int i = 0; i < output.length; i++) {
-                for (int j = 0; j < input.length; j++) {
-                    acceleration[i][j] *= momentumCoefficient;
-                    acceleration[i][j] += (1 - momentumCoefficient) * error[i] * input[j] * trainSpeed;
-                    weights[i][j] += acceleration[i][j];
-                }
-                biasWeight[i] += error[i] * trainSpeed;
-            }
-        }
-        else {
-            for (int i = 0; i < output.length; i++) {
-                for (int j = 0; j < prevLayer.output.length; j++) {
-                    acceleration[i][j] *= momentumCoefficient;
-                    acceleration[i][j] += (1 - momentumCoefficient) * error[i] * prevLayer.output[j] * trainSpeed;
-                    weights[i][j] += acceleration[i][j];
-                }
-                biasWeight[i] += error[i] * trainSpeed;
-            }
-        }
-    }
-    private void CNWMulti(double trainSpeed, double momentumCoefficient, int numThreads) {
-
-    }
-    private void CNWGPU(double trainSpeed, double momentumCoefficient) {
-
-        if (firstLayer) {
-            double[] in = input;
-            for (int i = 0; i < output.length; i++) {
-                double[] a = acceleration[i];
-                double[] w = weights[i];
-                double e = error[i];
-                if (kernels[i] == null) {
-                    try {
-                        kernels[i] = new Kernel() {
-                            @Override
-                            public void run() {
-                                int id = getGlobalId();
-                                a[id] *= momentumCoefficient;
-                                a[id] += (1 - momentumCoefficient) * e * in[id] * trainSpeed;
-                                w[id] += a[id];
-                            }
-                        }.compile(Device.bestGPU());
-                    } catch (CompileFailedException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-                kernels[i].setExplicit(true);
-                kernels[i].put(a);
-                kernels[i].put(w);
-                kernels[i].put(in);
-
-                kernels[i].execute(prevLayer.output.length);
-
-                kernels[i].get(a);
-                kernels[i].get(w);
-            }
-        }
-        else {
-            double[] in = prevLayer.output;
-            for (int i = 0; i < output.length; i++) {
-                double[] a = acceleration[i];
-                double[] w = weights[i];
-                double e = error[i];
-                if (kernels[i] == null) {
-                    try {
-                        kernels[i] = new Kernel() {
-                            @Override
-                            public void run() {
-                                int id = getGlobalId();
-                                a[id] *= momentumCoefficient;
-                                a[id] += (1 - momentumCoefficient) * e * in[id] * trainSpeed;
-                                w[id] += a[id];
-                            }
-                        }.compile(Device.bestGPU());
-                    } catch (CompileFailedException ex) {
-                        ex.printStackTrace();
-                    }
-                }
-                kernels[i].setExplicit(true);
-                kernels[i].put(a);
-                kernels[i].put(w);
-                kernels[i].put(in);
-
-                kernels[i].execute(prevLayer.output.length);
-
-                kernels[i].get(a);
-                kernels[i].get(w);
-                acceleration[i] = a;
-                weights[i] = w;
-            }
-        }
-    }
-
-    public int getInputSize() {
-        return input.length;
-    }
-
-
-    public AFunction getFunction() {
-        return function;
-    }
-
-    public void setCalculatingType(CalculatingType type) {
+    public void setType(CalculatingType type) {
         this.type = type;
-    }
-
-    public int getSize() {
-        return error.length;
     }
 }

@@ -13,22 +13,23 @@ public class NeuronNetworkIO {
     public static void write(String filename, LayeredNeuralNetwork network) {
         try {
             FileWriter writer = new FileWriter(filename + ".nwd");
-            writer.write(network.getType().name() + " ");
             writer.write(network.getLayers().get(0).getFunction().name() + " ");
-            writer.write(network.getLayers().get(0).getSize() + " ");
+            writer.write(network.getLayers().get(0).getNeurons().length + " ");
             writer.write(network.getLayers().get(0).getInputSize() + " ");
+            writer.write(network.getLayers().get(0).getRecurrency() + " ");
 
             for (int l = 1; l < network.getLayers().size(); l++) {
                 writer.write(network.getLayers().get(l).getFunction().name() + " ");
-                writer.write(network.getLayers().get(l).getSize() + " ");
+                writer.write(network.getLayers().get(l).getNeurons().length + " ");
+                writer.write(network.getLayers().get(0).getRecurrency() + " ");
             }
 
             for (int l = 0; l < network.getLayers().size(); l++) {
-                for (int n = 0; n < network.getLayers().get(l).getSize(); n++) {
-                    for (int w = 0; w < network.getLayers().get(l).weights[n].length; w++)
-                        writer.write( network.getLayers().get(l).weights[n][w] * coef + " ");
+                for (int n = 0; n < network.getLayers().get(l).getNeurons().length; n++) {
+                    for (int w = 0; w < network.getLayers().get(l).getNeurons()[n].getWeights().length; w++)
+                        writer.write( network.getLayers().get(l).getNeurons()[n].getWeights()[w] * coef + " ");
 
-                    writer.write(network.getLayers().get(l).biasWeight[n] * coef + " ");
+                    writer.write(network.getLayers().get(l).getNeurons()[n].biasWeight * coef + " ");
                 }
             }
             writer.flush();
@@ -41,17 +42,17 @@ public class NeuronNetworkIO {
         try {
             Scanner reader = new Scanner(new File(filename + ".nwd"));
             reader.useLocale(Locale.UK);
-            LayeredNeuralNetwork network = new LayeredNeuralNetwork(CalculatingType.valueOf(reader.next()));
-            network.initInLayer(AFunction.valueOf(reader.next()), reader.nextInt(), reader.nextInt());
+            LayeredNeuralNetwork network = new LayeredNeuralNetwork();
+            network.initInLayer(AFunction.valueOf(reader.next()), reader.nextInt(), reader.nextInt(), reader.nextBoolean());
             for (int l = 1; l < network.getLayers().size(); l++)
-                network.initHiddenOrOutLayer(AFunction.valueOf(reader.next()), reader.nextInt());
+                network.initHiddenOrOutLayer(AFunction.valueOf(reader.next()), reader.nextInt(), reader.nextBoolean());
 
             for (int l = 0; l < network.getLayers().size(); l++) {
-                for (int n = 0; n < network.getLayers().get(l).weights.length; n++) {
-                    for (int w = 0; w < network.getLayers().get(l).weights[n].length; w++)
-                        network.getLayers().get(l).weights[n][w] = reader.nextDouble() / coef;
+                for (int n = 0; n < network.getLayers().get(l).getNeurons().length; n++) {
+                    for (int w = 0; w < network.getLayers().get(l).getNeurons()[n].getWeights().length; w++)
+                        network.getLayers().get(l).getNeurons()[n].getWeights()[w] = reader.nextDouble() / coef;
 
-                    network.getLayers().get(l).biasWeight[n] = reader.nextDouble() / coef;
+                    network.getLayers().get(l).getNeurons()[n].biasWeight = reader.nextDouble() / coef;
                 }
             }
             reader.close();
