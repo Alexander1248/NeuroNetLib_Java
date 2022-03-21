@@ -15,11 +15,11 @@ public class NetworkTests extends TestCase {
 
     public void testXOR() {
         LayeredNeuralNetwork network = new LayeredNeuralNetwork();
-        network.initInLayer(AFunction.Sigmoid,4,2);
+        network.initInLayer(AFunction.Sigmoid, 4,2);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 2);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 1);
         network.setTrainSpeed(0.05);
-        network.setMomentumCoefficient(0.8);
+        network.setMomentumCoefficient(0.7);
         logger = new TableLogger("XOR", "epoch", "error");
 
         double[] rr;

@@ -101,7 +101,7 @@ public class Layer {
                 for (int j = 0; j < prevLayer.neurons.length; j++) {
                     neurons[i].acceleration[j] *= momentumCoefficient;
                     neurons[i].acceleration[j] += neurons[i].getLinks()[j] * (1 - momentumCoefficient) * neurons[i].getError() * input[j] * trainSpeed;
-                    neurons[i].weights[j] += neurons[i].acceleration[j];
+                    neurons[i].weights[j] += neurons[i].getLinks()[j] * neurons[i].acceleration[j];
                 }
                 neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
             }
@@ -110,8 +110,8 @@ public class Layer {
             for (int i = 0; i < neurons.length; i++) {
                 for (int j = 0; j < prevLayer.neurons.length; j++) {
                     neurons[i].acceleration[j] *= momentumCoefficient;
-                    neurons[i].acceleration[j] += neurons[i].getLinks()[j] * (1 - momentumCoefficient) * neurons[i].getError() * prevLayer.neurons[j].getOutput() * trainSpeed;
-                    neurons[i].weights[j] += neurons[i].acceleration[j];
+                    neurons[i].acceleration[j] += (1 - momentumCoefficient) * neurons[i].getError() * prevLayer.neurons[j].getOutput() * trainSpeed;
+                    neurons[i].weights[j] += neurons[i].getLinks()[j] * neurons[i].acceleration[j];
                 }
                 neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
             }
