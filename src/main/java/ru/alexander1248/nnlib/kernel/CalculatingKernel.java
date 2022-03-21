@@ -1,7 +1,6 @@
 package ru.alexander1248.nnlib.kernel;
 
 
-import jcuda.Pointer;
 import jcuda.driver.CUfunction;
 import jcuda.driver.CUmodule;
 
