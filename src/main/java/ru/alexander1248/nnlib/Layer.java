@@ -1,5 +1,6 @@
 package ru.alexander1248.nnlib;
 
+import com.aparapi.Kernel;
 import com.aparapi.internal.opencl.OpenCLKernel;
 import ru.alexander1248.nnlib.Neuron;
 
@@ -13,6 +14,9 @@ public class Layer {
     private CalculatingType type = CalculatingType.CPU;
 
     private int recurrent;
+
+    private Thread[] threads;
+    private Kernel[] kernels;
 
     public Layer(AFunction function, Layer prevLayer, int size, boolean reccurent) {
         firstLayer = false;
@@ -89,7 +93,6 @@ public class Layer {
             case CPU -> CL_CPU();
             case GPU -> CL_GPU();
         }
-
     }
 
     public void calculateOutLayerError(double[] rightResults) {
@@ -108,6 +111,37 @@ public class Layer {
     }
 
     public void calculateNewWeights(double trainSpeed, double momentumCoefficient) {
+        switch (type) {
+            case CPU -> CNW_CPU(trainSpeed, momentumCoefficient);
+            case GPU -> CNW_GPU(trainSpeed, momentumCoefficient);
+        }
+    }
+
+    public void CNW_CPU(double trainSpeed, double momentumCoefficient) {
+        if (firstLayer) {
+            for (int i = 0; i < neurons.length; i++) {
+                for (int j = 0; j < prevLayer.neurons.length; j++) {
+                    neurons[i].acceleration[j] *= momentumCoefficient;
+                    neurons[i].acceleration[j] += neurons[i].getLinks()[j] * (1 - momentumCoefficient) * neurons[i].getError() * input[j] * trainSpeed;
+                    neurons[i].weights[j] += neurons[i].getLinks()[j] * neurons[i].acceleration[j];
+                }
+                neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
+                neurons[i].recurrent += recurrent * neurons[i].getError() * neurons[i].getOutput() * trainSpeed;
+            }
+        }
+        else {
+            for (int i = 0; i < neurons.length; i++) {
+                for (int j = 0; j < prevLayer.neurons.length; j++) {
+                    neurons[i].acceleration[j] *= momentumCoefficient;
+                    neurons[i].acceleration[j] += (1 - momentumCoefficient) * neurons[i].getError() * prevLayer.neurons[j].getOutput() * trainSpeed;
+                    neurons[i].weights[j] += neurons[i].getLinks()[j] * neurons[i].acceleration[j];
+                }
+                neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
+                neurons[i].recurrent += recurrent * neurons[i].getError() * neurons[i].getOutput() * trainSpeed;
+            }
+        }
+    }
+    public void CNW_GPU(double trainSpeed, double momentumCoefficient) {
         if (firstLayer) {
             for (int i = 0; i < neurons.length; i++) {
                 for (int j = 0; j < prevLayer.neurons.length; j++) {

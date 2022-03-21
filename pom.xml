@@ -26,6 +26,11 @@
             <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jcuda</groupId>
+            <artifactId>jcuda</artifactId>
+            <version>11.4.1</version>
+        </dependency>
 
     </dependencies>
 
