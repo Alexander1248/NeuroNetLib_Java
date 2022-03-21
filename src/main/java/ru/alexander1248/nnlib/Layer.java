@@ -134,7 +134,7 @@ public class Layer {
             neurons[(int) (Math.random() * neurons.length)].mutate(coefficient / 10);
     }
 
-    public boolean getRecurrent() {
+    public boolean getRecurrency() {
         return recurrent == 1;
     }
 }
