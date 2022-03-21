@@ -4,15 +4,16 @@ package ru.alexander1248.nnlib.kernel;
 import jcuda.driver.CUfunction;
 import jcuda.driver.CUmodule;
 
-import static jcuda.driver.JCudaDriver.*;
+import static jcuda.driver.JCudaDriver.cuModuleGetFunction;
+import static jcuda.driver.JCudaDriver.cuModuleLoad;
 
-public class CalculatingKernel {
+public class TrainingKernel {
 
-    public CalculatingKernel() {
+    public TrainingKernel() {
 
         
         CUmodule module = new CUmodule();
-        cuModuleLoad(module, "NNCalculate.ptx");
+        cuModuleLoad(module, "NNTrain.ptx");
 
         CUfunction function = new CUfunction();
         cuModuleGetFunction(function, module, "add");
