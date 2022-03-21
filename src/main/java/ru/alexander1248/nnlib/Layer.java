@@ -1,5 +1,6 @@
 package ru.alexander1248.nnlib;
 
+import com.aparapi.internal.opencl.OpenCLKernel;
 import ru.alexander1248.nnlib.Neuron;
 
 public class Layer {
@@ -9,7 +10,10 @@ public class Layer {
     private AFunction function;
     boolean firstLayer;
 
+    private CalculatingType type = CalculatingType.CPU;
+
     private int recurrent;
+
     public Layer(AFunction function, Layer prevLayer, int size, boolean reccurent) {
         firstLayer = false;
         this.prevLayer = prevLayer;
@@ -48,25 +52,8 @@ public class Layer {
         this.function = function;
     }
 
-    public void setInput(int i, double input) {
-        if (firstLayer && i >= 0 && i < this.input.length) this.input[i] = input;
-    }
-    public double getOutput(int i) {
-        if (i >= 0 && i < this.neurons.length) return neurons[i].getOutput();
-        return Double.MIN_EXPONENT;
-    }
 
-    public Neuron[] getNeurons() {
-        return neurons;
-    }
-
-    public Layer getPrevLayer() {
-       if(!firstLayer) return prevLayer;
-       else return null;
-    }
-
-
-    public void calculateLayer() {
+    private void CL_CPU() {
         if (firstLayer) {
             for (int i = 0; i < neurons.length; i++) {
                 for (int j = 0; j < input.length; j++)
@@ -80,6 +67,29 @@ public class Layer {
                 neurons[i].calculateNeuron();
             }
         }
+    }
+    private void CL_GPU() {
+        if (firstLayer) {
+            for (int i = 0; i < neurons.length; i++) {
+                for (int j = 0; j < input.length; j++)
+                    neurons[i].setInput(j, input[j]);
+                neurons[i].calculateNeuron();
+            }
+        } else {
+            for (int i = 0; i < neurons.length; i++) {
+                for (int j = 0; j < prevLayer.neurons.length; j++)
+                    neurons[i].setInput(j, prevLayer.neurons[j].getOutput());
+                neurons[i].calculateNeuron();
+            }
+        }
+    }
+
+    public void calculateLayer() {
+        switch (type) {
+            case CPU -> CL_CPU();
+            case GPU -> CL_GPU();
+        }
+
     }
 
     public void calculateOutLayerError(double[] rightResults) {
@@ -122,20 +132,39 @@ public class Layer {
         }
     }
 
-    public int getInputSize() {
-        return input.length;
-    }
-
-    public AFunction getFunction() {
-        return function;
-    }
 
     public void mutate(double coefficient) {
         for (int i = 0; i < 10; i++)
             neurons[(int) (Math.random() * neurons.length)].mutate(coefficient / 10);
     }
 
+
+
+    public int getInputSize() {
+        return input.length;
+    }
+    public double getOutput(int i) {
+        if (i >= 0 && i < this.neurons.length) return neurons[i].getOutput();
+        return Double.MIN_EXPONENT;
+    }
+    public Neuron[] getNeurons() {
+        return neurons;
+    }
+    public AFunction getFunction() {
+        return function;
+    }
     public boolean getRecurrency() {
         return recurrent == 1;
+    }
+    public Layer getPrevLayer() {
+        if(!firstLayer) return prevLayer;
+        else return null;
+    }
+
+    public void setInput(int i, double input) {
+        if (firstLayer && i >= 0 && i < this.input.length) this.input[i] = input;
+    }
+    public void setType(CalculatingType type) {
+        this.type = type;
     }
 }
