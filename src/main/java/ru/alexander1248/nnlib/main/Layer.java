@@ -1,6 +1,7 @@
 package ru.alexander1248.nnlib.main;
 
-import com.aparapi.Kernel;
+
+import ru.alexander1248.nnlib.kernel.CUDATraining;
 
 public class Layer {
     private Layer prevLayer;
@@ -13,8 +14,7 @@ public class Layer {
 
     private int recurrent;
 
-    private Thread[] threads;
-    private Kernel[] kernels;
+    private CUDATraining train;
 
     public Layer(AFunction function, Layer prevLayer, int size, boolean reccurent) {
         firstLayer = false;
@@ -22,13 +22,16 @@ public class Layer {
         neurons = new Neuron[size];
         for (int i = 0; i < size; i++) neurons[i] = new Neuron(function, prevLayer.neurons.length, reccurent);
         this.function = function;
+        train = new CUDATraining(prevLayer.neurons.length);
+
     }
-    public Layer(AFunction function, int InputSize, int size, boolean reccurent) {
+    public Layer(AFunction function, int inputSize, int size, boolean reccurent) {
         firstLayer = true;
-        input = new double[InputSize];
+        input = new double[inputSize];
         neurons = new Neuron[size];
-        for (int i = 0; i < size; i++) neurons[i] = new Neuron(function, InputSize, reccurent);
+        for (int i = 0; i < size; i++) neurons[i] = new Neuron(function, inputSize, reccurent);
         this.function = function;
+        train = new CUDATraining(inputSize);
     }
 
     public Layer(AFunction function, boolean[][] links, boolean reccurent) {
@@ -41,6 +44,7 @@ public class Layer {
             neurons[i] = new Neuron(function, l, reccurent);
         }
         this.function = function;
+        train = new CUDATraining(links[0].length);
     }
     public Layer(AFunction function, Layer prevLayer, boolean[][] links, boolean reccurent) {
         firstLayer = false;
@@ -52,6 +56,7 @@ public class Layer {
             neurons[i] = new Neuron(function, l, reccurent);
         }
         this.function = function;
+        train = new CUDATraining(prevLayer.neurons.length);
     }
 
 
@@ -118,7 +123,7 @@ public class Layer {
     public void CNW_CPU(double trainSpeed, double momentumCoefficient) {
         if (firstLayer) {
             for (int i = 0; i < neurons.length; i++) {
-                for (int j = 0; j < prevLayer.neurons.length; j++) {
+                for (int j = 0; j < input.length; j++) {
                     neurons[i].acceleration[j] *= momentumCoefficient;
                     neurons[i].acceleration[j] += neurons[i].getLinks()[j] * (1 - momentumCoefficient) * neurons[i].getError() * input[j] * trainSpeed;
                     neurons[i].weights[j] += neurons[i].getLinks()[j] * neurons[i].acceleration[j];
@@ -142,11 +147,7 @@ public class Layer {
     public void CNW_GPU(double trainSpeed, double momentumCoefficient) {
         if (firstLayer) {
             for (int i = 0; i < neurons.length; i++) {
-                for (int j = 0; j < prevLayer.neurons.length; j++) {
-                    neurons[i].acceleration[j] *= momentumCoefficient;
-                    neurons[i].acceleration[j] += neurons[i].getLinks()[j] * (1 - momentumCoefficient) * neurons[i].getError() * input[j] * trainSpeed;
-                    neurons[i].weights[j] += neurons[i].getLinks()[j] * neurons[i].acceleration[j];
-                }
+                train.run(input, neurons[i].acceleration, neurons[i].weights, neurons[i].getLinks(), neurons[i].getError(), trainSpeed, momentumCoefficient);
                 neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
                 neurons[i].recurrent += recurrent * neurons[i].getError() * neurons[i].getOutput() * trainSpeed;
             }
@@ -158,8 +159,6 @@ public class Layer {
                     neurons[i].acceleration[j] += (1 - momentumCoefficient) * neurons[i].getError() * prevLayer.neurons[j].getOutput() * trainSpeed;
                     neurons[i].weights[j] += neurons[i].getLinks()[j] * neurons[i].acceleration[j];
                 }
-                neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
-                neurons[i].recurrent += recurrent * neurons[i].getError() * neurons[i].getOutput() * trainSpeed;
             }
         }
     }
