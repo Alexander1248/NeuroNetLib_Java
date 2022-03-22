@@ -26,7 +26,7 @@ public class CUDATraining {
 
         // Load the ptx file.
         CUmodule module = new CUmodule();
-        cuModuleLoad(module, "TShader.ptx");
+        cuModuleLoad(module, CUDAManager.ptxTShader);
 
         function = new CUfunction();
         cuModuleGetFunction(function, module, "train");
@@ -61,9 +61,9 @@ public class CUDATraining {
                 Pointer.to(new double[]{trainSpeed}),
                 Pointer.to(new double[]{momentumCoefficient})
         );
-        int blockSizeX = Math.min(256, data.length);
+        int blockSizeX = Math.min(64, data.length);
         int gridSizeX = (int)Math.ceil((double)data.length / blockSizeX);
-        cuLaunchKernel(function,
+         cuLaunchKernel(function,
                 gridSizeX,  1, 1,      // Grid dimension
                 blockSizeX, 1, 1,      // Block dimension
                 0, null,               // Shared memory size and stream
@@ -71,8 +71,10 @@ public class CUDATraining {
         );
         cuCtxSynchronize();
 
+
         cuMemcpyDtoH(Pointer.to(acceleration), this.acceleration, (long) data.length * Sizeof.DOUBLE);
         cuMemcpyDtoH(Pointer.to(weights), this.weights, (long) data.length * Sizeof.DOUBLE);
+
     }
 
     public void destroyStream() {
