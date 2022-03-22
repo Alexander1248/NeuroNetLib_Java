@@ -105,8 +105,8 @@ public class LayeredNeuralNetwork {
         for (int l = 1; l < layers.size(); l++) {
             network.initHiddenOrOutLayer(layers.get(l).getFunction(), layers.get(l).l, layers.get(0).getRecurrent());
             for (int n = 0; n < layers.get(l).getLength(); n++) {
-                System.arraycopy(layers.get(l).weights[n], 0, network.getLayers().get(l).weights[n], 0, layers.get(l).weights[n].length);
-                network.getLayers().get(l).biasWeight[n] = layers.get(l).biasWeight[n];
+                System.arraycopy(layers.get(l).getWeights()[n], 0, network.getLayers().get(l).getWeights()[n], 0, layers.get(l).getWeights()[n].length);
+                network.getLayers().get(l).getBiasWeight()[n] = layers.get(l).getBiasWeight()[n];
             }
         }
         network.setTrainSpeed(trainSpeed);

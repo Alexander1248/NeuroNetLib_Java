@@ -19,22 +19,22 @@ public class NeuronNetworkIO {
             FileWriter writer = new FileWriter(filename + ".nwd");
             writer.write(network.getType() + " ");
             writer.write(network.getLayers().get(0).getFunction().name() + " ");
-            writer.write(network.getLayers().get(0).getNeurons().length + " ");
+            writer.write(network.getLayers().get(0).getLength() + " ");
             writer.write(network.getLayers().get(0).getInputSize() + " ");
             writer.write(network.getLayers().get(0).getRecurrent() + " ");
 
             for (int l = 1; l < network.getLayers().size(); l++) {
                 writer.write(network.getLayers().get(l).getFunction().name() + " ");
-                writer.write(network.getLayers().get(l).getNeurons().length + " ");
+                writer.write(network.getLayers().get(l).getLength() + " ");
                 writer.write(network.getLayers().get(0).getRecurrent() + " ");
             }
 
             for (int l = 0; l < network.getLayers().size(); l++) {
-                for (int n = 0; n < network.getLayers().get(l).getNeurons().length; n++) {
-                    for (int w = 0; w < network.getLayers().get(l).getNeurons()[n].getWeights().length; w++)
-                        writer.write( network.getLayers().get(l).getNeurons()[n].getWeights()[w] * coef + " ");
+                for (int n = 0; n < network.getLayers().get(l).getLength(); n++) {
+                    for (int w = 0; w < network.getLayers().get(l).getWeights()[n].length; w++)
+                        writer.write( network.getLayers().get(l).getWeights()[n][w] * coef + " ");
 
-                    writer.write(network.getLayers().get(l).getNeurons()[n].getBiasWeight() * coef + " ");
+                    writer.write(network.getLayers().get(l).getBiasWeight()[n] * coef + " ");
                 }
             }
             writer.flush();
@@ -53,11 +53,11 @@ public class NeuronNetworkIO {
                 network.initHiddenOrOutLayer(AFunction.valueOf(reader.next()), reader.nextInt(), reader.nextBoolean());
 
             for (int l = 0; l < network.getLayers().size(); l++) {
-                for (int n = 0; n < network.getLayers().get(l).getNeurons().length; n++) {
-                    for (int w = 0; w < network.getLayers().get(l).getNeurons()[n].getWeights().length; w++)
-                        network.getLayers().get(l).getNeurons()[n].getWeights()[w] = reader.nextDouble() / coef;
+                for (int n = 0; n < network.getLayers().get(l).getLength(); n++) {
+                    for (int w = 0; w < network.getLayers().get(l).getWeights()[n].length; w++)
+                        network.getLayers().get(l).getWeights()[n][w] = reader.nextDouble() / coef;
 
-                    network.getLayers().get(l).getNeurons()[n].setBiasWeight(reader.nextDouble() / coef);
+                    network.getLayers().get(l).getBiasWeight()[n] = reader.nextDouble() / coef;
                 }
             }
             reader.close();

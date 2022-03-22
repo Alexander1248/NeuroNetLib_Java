@@ -13,8 +13,8 @@ public class Layer {
 
     private CUDATraining train;
 
-    final double[][] weights;
-    final double[] biasWeight;
+    private final double[][] weights;
+    private final double[] biasWeight;
     private final double[][] acceleration;
 
     private final double[] weightedSum;
@@ -70,7 +70,7 @@ public class Layer {
         for (int i = 0; i < size; i++) {
             biasWeight[i] = Math.random() * 2 - 1;
             this.recurrent[i] = Math.random() * 2 - 1;
-            for (int j = 0; j < prevLayer.output.length; j++) {
+            for (int j = 0; j < inputSize; j++) {
                 weights[i][j] = Math.random() * 2 - 1;
                 links[i][j] = 1;
             }
@@ -162,7 +162,7 @@ public class Layer {
         } else {
             for (int i = 0; i < error.length; i++) {
                 weightedSum[i] = output[i] * recurrent[i] + biasWeight[i];
-                for(int j = 0; j < input.length; j++) weightedSum[i] += prevLayer.output[j] * links[i][j] * weights[i][j];
+                for(int j = 0; j < prevLayer.output.length; j++) weightedSum[i] += prevLayer.output[j] * links[i][j] * weights[i][j];
                 output[i] = ActivationFunction.GetFunction(function, weightedSum[i]);
             }
         }
@@ -271,5 +271,13 @@ public class Layer {
 
     public int getLength() {
         return error.length;
+    }
+
+    public double[][] getWeights() {
+        return weights;
+    }
+
+    public double[] getBiasWeight() {
+        return biasWeight;
     }
 }

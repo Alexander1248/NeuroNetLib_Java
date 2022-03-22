@@ -42,14 +42,14 @@ public class CUDATraining {
         cuMemAlloc(weights, (long) length * Sizeof.DOUBLE);
 
         links = new CUdeviceptr();
-        cuMemAlloc(data, (long) length * Sizeof.INT);
+        cuMemAlloc(links, (long) length * Sizeof.INT);
     }
 
     public void run(double[] data, double[] acceleration, double[] weights, int[] links, double error, double trainSpeed, double momentumCoefficient) {
         cuMemcpyHtoD(this.data, Pointer.to(data), (long) data.length * Sizeof.DOUBLE);
         cuMemcpyHtoD(this.acceleration, Pointer.to(acceleration), (long) data.length * Sizeof.DOUBLE);
         cuMemcpyHtoD(this.weights, Pointer.to(weights), (long) data.length * Sizeof.DOUBLE);
-        cuMemcpyHtoD(this.links, Pointer.to(links), (long) data.length * Sizeof.DOUBLE);
+        cuMemcpyHtoD(this.links, Pointer.to(links), (long) data.length * Sizeof.INT);
 
         Pointer kernelParameters = Pointer.to(
                 Pointer.to(new double[]{data.length}),
