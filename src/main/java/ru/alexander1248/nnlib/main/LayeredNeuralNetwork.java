@@ -101,13 +101,12 @@ public class LayeredNeuralNetwork {
 
     public LayeredNeuralNetwork clone() {
         LayeredNeuralNetwork network = new LayeredNeuralNetwork(type);
-        network.initInLayer(layers.get(0).getFunction(), layers.get(0).getNeurons().length, layers.get(0).getInputSize(), layers.get(0).getRecurrency());
+        network.initInLayer(layers.get(0).getFunction(), layers.get(0).l, layers.get(0).getRecurrent());
         for (int l = 1; l < layers.size(); l++) {
-            network.initInLayer(layers.get(l).getFunction(), layers.get(l).getNeurons().length, layers.get(l).getInputSize(), layers.get(0).getRecurrency());
-            for (int n = 0; n < layers.get(l).getNeurons().length; n++) {
-                for (int w = 0; w < layers.get(l).getNeurons()[n].weights.length; w++)
-                    network.getLayers().get(l).getNeurons()[n].weights[w] = layers.get(l).getNeurons()[n].weights[w];
-                network.getLayers().get(l).getNeurons()[n].biasWeight = layers.get(l).getNeurons()[n].biasWeight;
+            network.initHiddenOrOutLayer(layers.get(l).getFunction(), layers.get(l).l, layers.get(0).getRecurrent());
+            for (int n = 0; n < layers.get(l).getLength(); n++) {
+                System.arraycopy(layers.get(l).weights[n], 0, network.getLayers().get(l).weights[n], 0, layers.get(l).weights[n].length);
+                network.getLayers().get(l).biasWeight[n] = layers.get(l).biasWeight[n];
             }
         }
         network.setTrainSpeed(trainSpeed);

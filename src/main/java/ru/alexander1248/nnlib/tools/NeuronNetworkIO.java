@@ -21,12 +21,12 @@ public class NeuronNetworkIO {
             writer.write(network.getLayers().get(0).getFunction().name() + " ");
             writer.write(network.getLayers().get(0).getNeurons().length + " ");
             writer.write(network.getLayers().get(0).getInputSize() + " ");
-            writer.write(network.getLayers().get(0).getRecurrency() + " ");
+            writer.write(network.getLayers().get(0).getRecurrent() + " ");
 
             for (int l = 1; l < network.getLayers().size(); l++) {
                 writer.write(network.getLayers().get(l).getFunction().name() + " ");
                 writer.write(network.getLayers().get(l).getNeurons().length + " ");
-                writer.write(network.getLayers().get(0).getRecurrency() + " ");
+                writer.write(network.getLayers().get(0).getRecurrent() + " ");
             }
 
             for (int l = 0; l < network.getLayers().size(); l++) {
