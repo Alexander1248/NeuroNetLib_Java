@@ -15,8 +15,6 @@ public class CUDATraining {
     CUdeviceptr links;
 
     public CUDATraining(int length) {
-        JCudaDriver.setExceptionsEnabled(true);
-        String ptxFileName = JCudaUtils.preparePtxFile("TShader.cu");
 
         // Initialize the driver and create a context for the first device.
         cuInit(0);
@@ -27,7 +25,7 @@ public class CUDATraining {
 
         // Load the ptx file.
         CUmodule module = new CUmodule();
-        cuModuleLoad(module, ptxFileName);
+        cuModuleLoad(module, CUDAManager.ptxTShader);
 
         function = new CUfunction();
         cuModuleGetFunction(function, module, "train");

@@ -1,6 +1,7 @@
 package ru.alexander1248.nnlib.tools;
 
 import ru.alexander1248.nnlib.main.AFunction;
+import ru.alexander1248.nnlib.main.CalculatingType;
 import ru.alexander1248.nnlib.main.LayeredNeuralNetwork;
 
 import java.io.File;
@@ -16,6 +17,7 @@ public class NeuronNetworkIO {
     public static void write(String filename, LayeredNeuralNetwork network) {
         try {
             FileWriter writer = new FileWriter(filename + ".nwd");
+            writer.write(network.getType() + " ");
             writer.write(network.getLayers().get(0).getFunction().name() + " ");
             writer.write(network.getLayers().get(0).getNeurons().length + " ");
             writer.write(network.getLayers().get(0).getInputSize() + " ");
@@ -45,7 +47,7 @@ public class NeuronNetworkIO {
         try {
             Scanner reader = new Scanner(new File(filename + ".nwd"));
             reader.useLocale(Locale.UK);
-            LayeredNeuralNetwork network = new LayeredNeuralNetwork();
+            LayeredNeuralNetwork network = new LayeredNeuralNetwork(CalculatingType.valueOf(reader.next()));
             network.initInLayer(AFunction.valueOf(reader.next()), reader.nextInt(), reader.nextInt(), reader.nextBoolean());
             for (int l = 1; l < network.getLayers().size(); l++)
                 network.initHiddenOrOutLayer(AFunction.valueOf(reader.next()), reader.nextInt(), reader.nextBoolean());

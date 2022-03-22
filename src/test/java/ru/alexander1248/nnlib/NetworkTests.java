@@ -4,6 +4,7 @@ package ru.alexander1248.nnlib;
 import junit.framework.TestCase;
 import ru.alexander1248.logger.TableLogger;
 import ru.alexander1248.nnlib.main.AFunction;
+import ru.alexander1248.nnlib.main.CalculatingType;
 import ru.alexander1248.nnlib.main.LayeredNeuralNetwork;
 
 import javax.imageio.ImageIO;
@@ -14,15 +15,16 @@ import java.io.IOException;
 
 public class NetworkTests extends TestCase {
     TableLogger logger;
-
+    CalculatingType type = CalculatingType.GPU;
     public void testXOR() {
-        LayeredNeuralNetwork network = new LayeredNeuralNetwork();
+        LayeredNeuralNetwork network = new LayeredNeuralNetwork(type);
         network.initInLayer(AFunction.Sigmoid, 4,2);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 2);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 1);
         network.setTrainSpeed(0.05);
         network.setMomentumCoefficient(0.7);
         logger = new TableLogger("XOR", "epoch", "error");
+        System.out.println("Training started!");
 
         double[] rr;
         double error;
@@ -62,11 +64,12 @@ public class NetworkTests extends TestCase {
     }
 
     public void testCompressor() {
-        LayeredNeuralNetwork network = new LayeredNeuralNetwork();
+        LayeredNeuralNetwork network = new LayeredNeuralNetwork(type);
         network.initInLayer(AFunction.Sigmoid, 28 * 14, 28 * 28);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 28 * 28);
         network.setTrainSpeed(0.005);
         logger = new TableLogger("Compressor", "epoch", "error");
+        System.out.println("Training started!");
 
         double error = 0;
         int epoch = 0;
@@ -121,12 +124,13 @@ public class NetworkTests extends TestCase {
     }
 
     public void testRecognition() {
-        LayeredNeuralNetwork network = new LayeredNeuralNetwork();
+        LayeredNeuralNetwork network = new LayeredNeuralNetwork(type);
         network.initInLayer(AFunction.Sigmoid, 14 * 14, 28 * 28);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 7 * 7);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 10);
         network.setTrainSpeed(0.001);
         logger = new TableLogger("Recognition", "epoch", "error");
+        System.out.println("Training started!");
 
         double error = 0;
         int epoch = 0;
@@ -179,13 +183,14 @@ public class NetworkTests extends TestCase {
     }
 
     public void testCreation() {
-        LayeredNeuralNetwork network = new LayeredNeuralNetwork();
+        LayeredNeuralNetwork network = new LayeredNeuralNetwork(type);
         network.initInLayer(AFunction.Sigmoid, 7 * 7,11);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 7 * 7);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 14 * 14);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 28 * 28);
         network.setTrainSpeed(0.001);
         logger = new TableLogger("Creation", "epoch", "error");
+        System.out.println("Training started!");
 
         double error = 0;
         int epoch = 0;

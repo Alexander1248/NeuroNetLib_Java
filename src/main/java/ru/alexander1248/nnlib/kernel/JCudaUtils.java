@@ -127,7 +127,7 @@ public class JCudaUtils
             throw new CudaException("Input file not found: " + cuFileName +
                     " (" + cuFile.getAbsolutePath() + ")");
         }
-        String modelString = "-m" + System.getProperty("sun.arch.data.model");
+        String modelString = "-m32";
         String command = "nvcc ";
         command += modelString + " ";
         command += "-" + targetFileType + " ";

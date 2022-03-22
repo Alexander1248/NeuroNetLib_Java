@@ -10,31 +10,34 @@ public class Layer {
     private AFunction function;
     boolean firstLayer;
 
-    private CalculatingType type = CalculatingType.CPU;
+    private final CalculatingType type;
 
     private int recurrent;
 
     private CUDATraining train;
 
-    public Layer(AFunction function, Layer prevLayer, int size, boolean reccurent) {
+    public Layer(AFunction function, Layer prevLayer, int size, boolean reccurent, CalculatingType type) {
+        this.type = type;
         firstLayer = false;
         this.prevLayer = prevLayer;
         neurons = new Neuron[size];
         for (int i = 0; i < size; i++) neurons[i] = new Neuron(function, prevLayer.neurons.length, reccurent);
         this.function = function;
-        train = new CUDATraining(prevLayer.neurons.length);
+        if (type.equals(CalculatingType.GPU)) train = new CUDATraining(prevLayer.neurons.length);
 
     }
-    public Layer(AFunction function, int inputSize, int size, boolean reccurent) {
+    public Layer(AFunction function, int inputSize, int size, boolean reccurent, CalculatingType type) {
+        this.type = type;
         firstLayer = true;
         input = new double[inputSize];
         neurons = new Neuron[size];
         for (int i = 0; i < size; i++) neurons[i] = new Neuron(function, inputSize, reccurent);
         this.function = function;
-        train = new CUDATraining(inputSize);
+        if (type.equals(CalculatingType.GPU)) train = new CUDATraining(inputSize);
     }
 
-    public Layer(AFunction function, boolean[][] links, boolean reccurent) {
+    public Layer(AFunction function, boolean[][] links, boolean reccurent, CalculatingType type) {
+        this.type = type;
         firstLayer = true;
         input = new double[links[0].length];
         neurons = new Neuron[links.length];
@@ -44,9 +47,10 @@ public class Layer {
             neurons[i] = new Neuron(function, l, reccurent);
         }
         this.function = function;
-        train = new CUDATraining(links[0].length);
+        if (type.equals(CalculatingType.GPU)) train = new CUDATraining(links[0].length);
     }
-    public Layer(AFunction function, Layer prevLayer, boolean[][] links, boolean reccurent) {
+    public Layer(AFunction function, Layer prevLayer, boolean[][] links, boolean reccurent, CalculatingType type) {
+        this.type = type;
         firstLayer = false;
         this.prevLayer = prevLayer;
         neurons = new Neuron[links.length];
@@ -56,7 +60,7 @@ public class Layer {
             neurons[i] = new Neuron(function, l, reccurent);
         }
         this.function = function;
-        train = new CUDATraining(prevLayer.neurons.length);
+        if (type.equals(CalculatingType.GPU)) train = new CUDATraining(prevLayer.neurons.length);
     }
 
 
@@ -159,6 +163,8 @@ public class Layer {
                     neurons[i].acceleration[j] += (1 - momentumCoefficient) * neurons[i].getError() * prevLayer.neurons[j].getOutput() * trainSpeed;
                     neurons[i].weights[j] += neurons[i].getLinks()[j] * neurons[i].acceleration[j];
                 }
+                neurons[i].biasWeight += neurons[i].getError() * trainSpeed;
+                neurons[i].recurrent += recurrent * neurons[i].getError() * neurons[i].getOutput() * trainSpeed;
             }
         }
     }
@@ -194,8 +200,5 @@ public class Layer {
 
     public void setInput(int i, double input) {
         if (firstLayer && i >= 0 && i < this.input.length) this.input[i] = input;
-    }
-    public void setType(CalculatingType type) {
-        this.type = type;
     }
 }

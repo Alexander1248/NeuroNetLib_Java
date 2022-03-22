@@ -8,49 +8,46 @@ public class LayeredNeuralNetwork {
 
     double trainSpeed = 0.1, momentumCoefficient = 0;
 
+    private final CalculatingType type;
 
-    public LayeredNeuralNetwork() {}
-    public LayeredNeuralNetwork(AFunction[] layersFunctions, int[] layersSizes, boolean[] reccurent) {
+    public LayeredNeuralNetwork(CalculatingType type) {
+        this.type = type;
+    }
+    public LayeredNeuralNetwork(CalculatingType type, AFunction[] layersFunctions, int[] layersSizes, boolean[] reccurent) {
+        this(type);
         initInLayer(layersFunctions[0], layersSizes[1], layersSizes[0], reccurent[0]);
         for (int i = 1; i < layers.size(); i++) initHiddenOrOutLayer(layersFunctions[i], layersSizes[i + 1], reccurent[i]);
     }
-    public LayeredNeuralNetwork(AFunction[] layersFunctions, int[] layersSizes) {
+    public LayeredNeuralNetwork(CalculatingType type, AFunction[] layersFunctions, int[] layersSizes) {
+        this(type);
         initInLayer(layersFunctions[0], layersSizes[1], layersSizes[0], false);
         for (int i = 1; i < layers.size(); i++) initHiddenOrOutLayer(layersFunctions[i], layersSizes[i + 1], false);
     }
 
     public void initHiddenOrOutLayer(AFunction function, int size) {
-        Layer layer = new Layer(function, layers.get(layers.size() - 1), size, false);
-        layers.add(layer);
+        layers.add(new Layer(function, layers.get(layers.size() - 1), size, false, type));
     }
     public void initHiddenOrOutLayer(AFunction function, int size, boolean reccurent) {
-        Layer layer = new Layer(function, layers.get(layers.size() - 1), size, reccurent);
-        layers.add(layer);
+        layers.add(new Layer(function, layers.get(layers.size() - 1), size, reccurent, type));
     }
     public void initHiddenOrOutLayer(AFunction function, boolean[][] links) {
-        Layer layer = new Layer(function, layers.get(layers.size() - 1), links, false);
-        layers.add(layer);
+        layers.add(new Layer(function, layers.get(layers.size() - 1), links, false, type));
     }
     public void initHiddenOrOutLayer(AFunction function, boolean[][] links, boolean reccurent) {
-        Layer layer = new Layer(function, layers.get(layers.size() - 1), links, reccurent);
-        layers.add(layer);
+        layers.add(new Layer(function, layers.get(layers.size() - 1), links, reccurent, type));
     }
 
-    public void initInLayer(AFunction function, boolean[][] links){
-        Layer layer = new Layer(function, links, false);
-        layers.add(layer);
+    public void initInLayer(AFunction function, boolean[][] links) {
+        layers.add(new Layer(function, links, false, type));
     }
-    public void initInLayer(AFunction function, boolean[][] links, boolean reccurent){
-        Layer layer = new Layer(function, links, reccurent);
-        layers.add(layer);
+    public void initInLayer(AFunction function, boolean[][] links, boolean reccurent) {
+        layers.add(new Layer(function, links, reccurent, type));
     }
-    public void initInLayer(AFunction function, int size, int inputSize){
-        Layer layer = new Layer(function, inputSize, size, false);
-        layers.add(layer);
+    public void initInLayer(AFunction function, int size, int inputSize) {
+        layers.add(new Layer(function, inputSize, size, false, type));
     }
-    public void initInLayer(AFunction function, int size, int inputSize, boolean reccurent){
-        Layer layer = new Layer(function, inputSize, size, reccurent);
-        layers.add(layer);
+    public void initInLayer(AFunction function, int size, int inputSize, boolean reccurent) {
+        layers.add(new Layer(function, inputSize, size, reccurent, type));
     }
 
     public void setInput(int i,double value) {
@@ -103,7 +100,7 @@ public class LayeredNeuralNetwork {
     }
 
     public LayeredNeuralNetwork clone() {
-        LayeredNeuralNetwork network = new LayeredNeuralNetwork();
+        LayeredNeuralNetwork network = new LayeredNeuralNetwork(type);
         network.initInLayer(layers.get(0).getFunction(), layers.get(0).getNeurons().length, layers.get(0).getInputSize(), layers.get(0).getRecurrency());
         for (int l = 1; l < layers.size(); l++) {
             network.initInLayer(layers.get(l).getFunction(), layers.get(l).getNeurons().length, layers.get(l).getInputSize(), layers.get(0).getRecurrency());
@@ -116,5 +113,9 @@ public class LayeredNeuralNetwork {
         network.setTrainSpeed(trainSpeed);
         network.setMomentumCoefficient(momentumCoefficient);
         return network;
+    }
+
+    public CalculatingType getType() {
+        return type;
     }
 }

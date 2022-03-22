@@ -1,5 +1,4 @@
 extern "C"
-
  __global__ void train(int len, double *data, double *acceleration, double *weights, int *links, double error, double momentumCoefficient, double trainSpeed)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
