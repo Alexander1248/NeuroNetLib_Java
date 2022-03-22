@@ -16,17 +16,6 @@ public class Layer {
 
     private CUDATraining train;
 
-    protected double[][] weights;
-    protected double[] biasWeight;
-    protected double[][] acceleration;
-
-    private double[] weightedSum;
-    private double[] output;
-    private double[] error;
-
-    private final int[][] links;
-
-    protected double[] recurrent;
 
     public Layer(AFunction function, Layer prevLayer, int size, boolean reccurent, CalculatingType type) {
         this.type = type;
