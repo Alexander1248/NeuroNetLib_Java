@@ -31,7 +31,6 @@
             <artifactId>jcuda</artifactId>
             <version>11.4.1</version>
         </dependency>
-
     </dependencies>
 
 </project>

@@ -32,7 +32,7 @@ public class NeuronNetworkIO {
                     for (int w = 0; w < network.getLayers().get(l).getNeurons()[n].getWeights().length; w++)
                         writer.write( network.getLayers().get(l).getNeurons()[n].getWeights()[w] * coef + " ");
 
-                    writer.write(network.getLayers().get(l).getNeurons()[n].biasWeight * coef + " ");
+                    writer.write(network.getLayers().get(l).getNeurons()[n].getBiasWeight() * coef + " ");
                 }
             }
             writer.flush();
@@ -55,7 +55,7 @@ public class NeuronNetworkIO {
                     for (int w = 0; w < network.getLayers().get(l).getNeurons()[n].getWeights().length; w++)
                         network.getLayers().get(l).getNeurons()[n].getWeights()[w] = reader.nextDouble() / coef;
 
-                    network.getLayers().get(l).getNeurons()[n].biasWeight = reader.nextDouble() / coef;
+                    network.getLayers().get(l).getNeurons()[n].setBiasWeight(reader.nextDouble() / coef);
                 }
             }
             reader.close();
