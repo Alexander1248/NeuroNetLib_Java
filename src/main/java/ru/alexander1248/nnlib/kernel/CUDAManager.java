@@ -5,8 +5,7 @@ import jcuda.driver.JCudaDriver;
 public class CUDAManager {
     public static String ptxTShader;
     public static String ptxCShader;
-    static {
-        JCudaDriver.setExceptionsEnabled(true);
+    public static void run() {
         ptxTShader = JCudaUtils.preparePtxFile("TShader.cu");
         ptxCShader = JCudaUtils.preparePtxFile("CShader.cu");
     }

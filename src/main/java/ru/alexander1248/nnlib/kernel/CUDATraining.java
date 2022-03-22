@@ -8,14 +8,15 @@ import static jcuda.driver.JCudaDriver.*;
 import static jcuda.driver.JCudaDriver.cuMemAlloc;
 
 public class CUDATraining {
-    CUfunction function;
-    CUdeviceptr data;
-    CUdeviceptr acceleration;
-    CUdeviceptr weights;
-    CUdeviceptr links;
+    private final CUfunction function;
+
+    private final CUdeviceptr data;
+    private final CUdeviceptr acceleration;
+    private final CUdeviceptr weights;
+    private final CUdeviceptr links;
 
     public CUDATraining(int length) {
-
+        JCudaDriver.setExceptionsEnabled(true);
         // Initialize the driver and create a context for the first device.
         cuInit(0);
         CUdevice device = new CUdevice();
@@ -25,7 +26,7 @@ public class CUDATraining {
 
         // Load the ptx file.
         CUmodule module = new CUmodule();
-        cuModuleLoad(module, CUDAManager.ptxTShader);
+        cuModuleLoad(module, "TShader.ptx");
 
         function = new CUfunction();
         cuModuleGetFunction(function, module, "train");
@@ -39,9 +40,6 @@ public class CUDATraining {
 
         weights = new CUdeviceptr();
         cuMemAlloc(weights, (long) length * Sizeof.DOUBLE);
-
-        weights = new CUdeviceptr();
-        cuMemAlloc(data, (long) length * Sizeof.DOUBLE);
 
         links = new CUdeviceptr();
         cuMemAlloc(data, (long) length * Sizeof.INT);
@@ -89,5 +87,4 @@ public class CUDATraining {
         destroyStream();
         super.finalize();
     }
-
 }

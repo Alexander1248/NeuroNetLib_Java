@@ -16,6 +16,8 @@ public class Layer {
 
     private CUDATraining train;
 
+
+
     public Layer(AFunction function, Layer prevLayer, int size, boolean reccurent, CalculatingType type) {
         this.type = type;
         firstLayer = false;
