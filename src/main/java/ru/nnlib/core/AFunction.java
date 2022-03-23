@@ -1,4 +1,4 @@
-package ru.nnlib.main;
+package ru.nnlib.core;
 
 public enum AFunction {
     Identity,

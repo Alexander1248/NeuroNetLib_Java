@@ -1,4 +1,6 @@
-package ru.nnlib.main;
+package ru.nnlib.core;
+
+import ru.nnlib.kernel.CalculatingType;
 
 import java.util.ArrayList;
 import java.util.List;

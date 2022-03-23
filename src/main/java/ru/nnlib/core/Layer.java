@@ -1,7 +1,8 @@
-package ru.nnlib.main;
+package ru.nnlib.core;
 
 
 import ru.nnlib.kernel.CUDATraining;
+import ru.nnlib.kernel.CalculatingType;
 
 public class Layer {
     private Layer prevLayer;

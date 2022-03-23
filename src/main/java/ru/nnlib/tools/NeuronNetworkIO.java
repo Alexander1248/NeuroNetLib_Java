@@ -1,8 +1,8 @@
 package ru.nnlib.tools;
 
-import ru.nnlib.main.AFunction;
-import ru.nnlib.main.CalculatingType;
-import ru.nnlib.main.LayeredNeuralNetwork;
+import ru.nnlib.core.AFunction;
+import ru.nnlib.kernel.CalculatingType;
+import ru.nnlib.core.LayeredNeuralNetwork;
 
 import java.io.File;
 import java.io.FileNotFoundException;

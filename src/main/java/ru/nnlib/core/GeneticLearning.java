@@ -1,4 +1,4 @@
-package ru.nnlib.main;
+package ru.nnlib.core;
 
 import java.util.ArrayList;
 import java.util.Comparator;

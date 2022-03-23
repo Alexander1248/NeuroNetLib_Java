@@ -1,4 +1,4 @@
-package ru.nnlib.main;
+package ru.nnlib.kernel;
 
 public enum CalculatingType {
     CPU,
