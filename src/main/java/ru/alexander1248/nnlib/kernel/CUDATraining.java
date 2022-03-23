@@ -69,13 +69,13 @@ public class CUDATraining {
                 Pointer.to(new double[]{momentumCoefficient})
         );
 
-        int blockSizeX = Math.min(256, data.length);
-        int gridSizeX = (int)Math.ceil((double)data.length / blockSizeX);
-        int blockSizeY = Math.min(256, error.length);
-        int gridSizeY = (int)Math.ceil((double)error.length / blockSizeX);
+        int blockSizeX = Math.min(1024, data.length * error.length);
+        int gridSizeX = (int)Math.ceil((double)data.length * error.length / blockSizeX);
+        System.out.println("Length:" + data.length);
+        System.out.println("Length:" + error.length);
          cuLaunchKernel(function,
-                gridSizeX,  gridSizeY, 1,      // Grid dimension
-                blockSizeX, blockSizeY, 1,      // Block dimension
+                 gridSizeX,  1, 1,      // Grid dimension
+                blockSizeX, 1, 1,      // Block dimension
                 0, null,               // Shared memory size and stream
                 kernelParameters, null // Kernel- and extra parameters
         );

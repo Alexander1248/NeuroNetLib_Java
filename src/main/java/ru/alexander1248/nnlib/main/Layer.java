@@ -1,14 +1,7 @@
 package ru.alexander1248.nnlib.main;
 
 
-import jcuda.Pointer;
-import jcuda.Sizeof;
-import jcuda.driver.*;
-import ru.alexander1248.nnlib.kernel.CUDAManager;
 import ru.alexander1248.nnlib.kernel.CUDATraining;
-
-import static jcuda.driver.JCudaDriver.*;
-import static jcuda.driver.JCudaDriver.cuMemcpyDtoH;
 
 public class Layer {
     private Layer prevLayer;

@@ -2,7 +2,7 @@ package ru.alexander1248.nnlib;
 
 
 import junit.framework.TestCase;
-import ru.alexander1248.logger.TableLogger;
+import ru.alexander1248.nnlib.tools.TableLogger;
 import ru.alexander1248.nnlib.main.AFunction;
 import ru.alexander1248.nnlib.main.CalculatingType;
 import ru.alexander1248.nnlib.main.LayeredNeuralNetwork;
