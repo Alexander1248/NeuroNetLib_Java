@@ -1,11 +1,11 @@
-package ru.alexander1248.nnlib;
+package ru.nnlib;
 
 
 import junit.framework.TestCase;
-import ru.alexander1248.nnlib.tools.TableLogger;
-import ru.alexander1248.nnlib.main.AFunction;
-import ru.alexander1248.nnlib.main.CalculatingType;
-import ru.alexander1248.nnlib.main.LayeredNeuralNetwork;
+import ru.nnlib.tools.TableLogger;
+import ru.nnlib.main.AFunction;
+import ru.nnlib.main.CalculatingType;
+import ru.nnlib.main.LayeredNeuralNetwork;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

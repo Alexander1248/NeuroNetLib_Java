@@ -1,4 +1,4 @@
-package ru.alexander1248.nnlib.main;
+package ru.nnlib.main;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package ru.alexander1248.nnlib.main;
+package ru.nnlib.main;
 
 public class ActivationFunction {
     private ActivationFunction() {}

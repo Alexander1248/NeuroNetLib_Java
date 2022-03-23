@@ -1,7 +1,7 @@
-package ru.alexander1248.nnlib.main;
+package ru.nnlib.main;
 
 
-import ru.alexander1248.nnlib.kernel.CUDATraining;
+import ru.nnlib.kernel.CUDATraining;
 
 public class Layer {
     private Layer prevLayer;

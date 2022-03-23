@@ -1,4 +1,4 @@
-package ru.alexander1248.nnlib.tools;
+package ru.nnlib.tools;
 
 import java.io.FileWriter;
 import java.io.IOException;

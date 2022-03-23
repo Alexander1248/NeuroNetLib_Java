@@ -1,4 +1,4 @@
-package ru.alexander1248.nnlib.kernel;
+package ru.nnlib.kernel;
 
 import jcuda.Pointer;
 import jcuda.Sizeof;

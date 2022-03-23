@@ -1,6 +1,4 @@
-package ru.alexander1248.nnlib.kernel;
-
-import java.io.File;
+package ru.nnlib.kernel;
 
 public class CUDAManager {
     public static String ptxTShader = "TShader.ptx";

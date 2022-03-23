@@ -1,4 +1,4 @@
-package ru.alexander1248.nnlib.kernel;
+package ru.nnlib.kernel;
 
 import static jcuda.driver.CUdevice_attribute.CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR;
 import static jcuda.driver.CUdevice_attribute.CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR;
