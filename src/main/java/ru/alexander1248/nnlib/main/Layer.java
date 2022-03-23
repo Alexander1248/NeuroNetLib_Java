@@ -1,7 +1,14 @@
 package ru.alexander1248.nnlib.main;
 
 
+import jcuda.Pointer;
+import jcuda.Sizeof;
+import jcuda.driver.*;
+import ru.alexander1248.nnlib.kernel.CUDAManager;
 import ru.alexander1248.nnlib.kernel.CUDATraining;
+
+import static jcuda.driver.JCudaDriver.*;
+import static jcuda.driver.JCudaDriver.cuMemcpyDtoH;
 
 public class Layer {
     private Layer prevLayer;
@@ -11,21 +18,21 @@ public class Layer {
 
     private final CalculatingType type;
 
-    private CUDATraining train;
-
-    private final double[][] weights;
+    private final double[] weights;
     private final double[] biasWeight;
-    private final double[][] acceleration;
+    private final double[] acceleration;
 
     private final double[] weightedSum;
     private final double[] output;
     private final double[] error;
 
-    private final int[][] links;
+    private final int[] links;
     boolean[][] l;
 
     private final double[] recurrent;
     private final int rec;
+
+    CUDATraining train;
 
     public Layer(AFunction function, Layer prevLayer, int size, boolean reccurent, CalculatingType type) {
         this.type = type;
@@ -33,9 +40,9 @@ public class Layer {
         this.prevLayer = prevLayer;
 
         biasWeight = new double[size];
-        weights = new double[size][prevLayer.output.length];
-        acceleration = new double[size][prevLayer.output.length];
-        links = new int[size][prevLayer.output.length];
+        weights = new double[size * prevLayer.output.length];
+        acceleration = new double[size * prevLayer.output.length];
+        links = new int[size * prevLayer.output.length];
         this.recurrent = new double[size];
         weightedSum = new double[size];
         output = new double[size];
@@ -44,14 +51,14 @@ public class Layer {
             biasWeight[i] = Math.random() * 2 - 1;
             this.recurrent[i] = Math.random() * 2 - 1;
             for (int j = 0; j < prevLayer.output.length; j++) {
-                weights[i][j] = Math.random() * 2 - 1;
-                links[i][j] = 1;
+                weights[i * prevLayer.output.length + j] = Math.random() * 2 - 1;
+                links[i * prevLayer.output.length + j] = 1;
             }
         }
         rec = reccurent ? 1 : 0;
 
         this.function = function;
-        if (type.equals(CalculatingType.GPU)) train = new CUDATraining(prevLayer.getLength());
+        if (type.equals(CalculatingType.GPU)) train = new CUDATraining(error.length, prevLayer.output.length);
 
     }
     public Layer(AFunction function, int inputSize, int size, boolean reccurent, CalculatingType type) {
@@ -60,9 +67,9 @@ public class Layer {
         input = new double[inputSize];
 
         biasWeight = new double[size];
-        weights = new double[size][inputSize];
-        acceleration = new double[size][inputSize];
-        links = new int[size][inputSize];
+        weights = new double[size * inputSize];
+        acceleration = new double[size * inputSize];
+        links = new int[size * inputSize];
         this.recurrent = new double[size];
         weightedSum = new double[size];
         output = new double[size];
@@ -71,14 +78,14 @@ public class Layer {
             biasWeight[i] = Math.random() * 2 - 1;
             this.recurrent[i] = Math.random() * 2 - 1;
             for (int j = 0; j < inputSize; j++) {
-                weights[i][j] = Math.random() * 2 - 1;
-                links[i][j] = 1;
+                weights[i * inputSize + j] = Math.random() * 2 - 1;
+                links[i * inputSize + j] = 1;
             }
         }
         rec = reccurent ? 1 : 0;
 
         this.function = function;
-        if (type.equals(CalculatingType.GPU)) train = new CUDATraining(inputSize);
+        if (type.equals(CalculatingType.GPU)) train = new CUDATraining(error.length, input.length);
     }
 
     public Layer(AFunction function, boolean[][] links, boolean reccurent, CalculatingType type) {
@@ -87,9 +94,9 @@ public class Layer {
         input = new double[links[0].length];
 
         biasWeight = new double[links.length];
-        weights = new double[links.length][links[0].length];
-        acceleration = new double[links.length][links[0].length];
-        this.links = new int[links.length][links[0].length];
+        weights = new double[links.length * links[0].length];
+        acceleration = new double[links.length * links[0].length];
+        this.links = new int[links.length * links[0].length];
         this.recurrent = new double[links.length];
         weightedSum = new double[links.length];
         output = new double[links.length];
@@ -98,15 +105,15 @@ public class Layer {
             biasWeight[i] = Math.random() * 2 - 1;
             this.recurrent[i] = Math.random() * 2 - 1;
             for (int j = 0; j < links[0].length; j++) {
-                weights[i][j] = Math.random() * 2 - 1;
-                this.links[i][j] = links[i][j] ? 1 : 0;
+                weights[j * links[0].length + i] = Math.random() * 2 - 1;
+                this.links[i * links[0].length + j] = links[i][j] ? 1 : 0;
             }
         }
         rec = reccurent ? 1 : 0;
         l = links.clone();
 
         this.function = function;
-        if (type.equals(CalculatingType.GPU)) train = new CUDATraining(links[0].length);
+        if (type.equals(CalculatingType.GPU)) train = new CUDATraining(error.length, prevLayer.output.length);
     }
     public Layer(AFunction function, Layer prevLayer, boolean[][] links, boolean reccurent, CalculatingType type) {
         this.type = type;
@@ -114,9 +121,9 @@ public class Layer {
         this.prevLayer = prevLayer;
 
         biasWeight = new double[links.length];
-        weights = new double[links.length][links[0].length];
-        acceleration = new double[links.length][links[0].length];
-        this.links = new int[links.length][links[0].length];
+        weights = new double[links.length * links[0].length];
+        acceleration = new double[links.length * links[0].length];
+        this.links = new int[links.length * links[0].length];
         this.recurrent = new double[links.length];
         weightedSum = new double[links.length];
         output = new double[links.length];
@@ -125,15 +132,15 @@ public class Layer {
             biasWeight[i] = Math.random() * 2 - 1;
             this.recurrent[i] = Math.random() * 2 - 1;
             for (int j = 0; j < links[0].length; j++) {
-                weights[i][j] = Math.random() * 2 - 1;
-                this.links[i][j] = links[i][j] ? 1 : 0;
+                weights[j * links[0].length + i] = Math.random() * 2 - 1;
+                this.links[i * links[0].length + j] = links[i][j] ? 1 : 0;
             }
         }
         rec = reccurent ? 1 : 0;
         l = links.clone();
 
         this.function = function;
-        if (type.equals(CalculatingType.GPU)) train = new CUDATraining(prevLayer.getLength());
+        if (type.equals(CalculatingType.GPU)) train = new CUDATraining(error.length, input.length);
     }
 
 
@@ -141,13 +148,13 @@ public class Layer {
         if (firstLayer) {
             for (int i = 0; i < error.length; i++) {
                 weightedSum[i] = output[i] * recurrent[i] + biasWeight[i];
-                for(int j = 0; j < input.length; j++) weightedSum[i] += input[j] * links[i][j] * weights[i][j];
+                for(int j = 0; j < input.length; j++) weightedSum[i] += input[j] * links[i * input.length + j] * weights[i * input.length + j];
                 output[i] = ActivationFunction.GetFunction(function, weightedSum[i]);
             }
         } else {
             for (int i = 0; i < error.length; i++) {
                 weightedSum[i] = output[i] * recurrent[i] + biasWeight[i];
-                for(int j = 0; j < input.length; j++) weightedSum[i] += prevLayer.output[j] * links[i][j] * weights[i][j];
+                for(int j = 0; j < prevLayer.getLength(); j++) weightedSum[i] += prevLayer.output[j] * links[i * prevLayer.getLength() + j] * weights[i * prevLayer.getLength() + j];
                 output[i] = ActivationFunction.GetFunction(function, weightedSum[i]);
             }
         }
@@ -156,16 +163,17 @@ public class Layer {
         if (firstLayer) {
             for (int i = 0; i < error.length; i++) {
                 weightedSum[i] = output[i] * recurrent[i] + biasWeight[i];
-                for(int j = 0; j < input.length; j++) weightedSum[i] += input[j] * links[i][j] * weights[i][j];
+                for(int j = 0; j < input.length; j++) weightedSum[i] += input[j] * links[i * input.length + j] * weights[i * input.length + j];
                 output[i] = ActivationFunction.GetFunction(function, weightedSum[i]);
             }
         } else {
             for (int i = 0; i < error.length; i++) {
                 weightedSum[i] = output[i] * recurrent[i] + biasWeight[i];
-                for(int j = 0; j < prevLayer.output.length; j++) weightedSum[i] += prevLayer.output[j] * links[i][j] * weights[i][j];
+                for(int j = 0; j < prevLayer.output.length; j++) weightedSum[i] += prevLayer.output[j] * links[i * prevLayer.error.length + j] * weights[i * prevLayer.error.length + j];
                 output[i] = ActivationFunction.GetFunction(function, weightedSum[i]);
             }
         }
+        for (int i = 0; i < error.length; i++) output[i] = ActivationFunction.GetFunction(function, weightedSum[i]);
     }
 
     public void calculateLayer() {
@@ -183,7 +191,7 @@ public class Layer {
         for (int i = 0; i < error.length; i++) {
             double error = 0;
             for (int j = 0; j < postLayer.error.length; j++) {
-                error += postLayer.weights[j][i] * postLayer.error[j];
+                error += postLayer.weights[j * this.error.length + i] * postLayer.error[j];
                 error += rec * postLayer.recurrent[j] * postLayer.error[j];
             }
             this.error[i] = error * ActivationFunction.GetDerivative(function, weightedSum[i]);
@@ -201,9 +209,9 @@ public class Layer {
         if (firstLayer) {
             for (int i = 0; i < error.length; i++) {
                 for (int j = 0; j < input.length; j++) {
-                    acceleration[i][j] *= momentumCoefficient;
-                    acceleration[i][j] += links[i][j] * (1 - momentumCoefficient) * error[i] * input[j] * trainSpeed;
-                    weights[i][j] += links[i][j] * acceleration[i][j];
+                    acceleration[i * input.length + j] *= momentumCoefficient;
+                    acceleration[i * input.length + j] += links[i * input.length + j] * (1 - momentumCoefficient) * error[i] * input[j] * trainSpeed;
+                    weights[i * input.length + j] += links[i * input.length + j] * acceleration[i * input.length + j];
                 }
                 biasWeight[i] += error[i] * trainSpeed;
                 recurrent[i] += rec * error[i] * output[i] * trainSpeed;
@@ -212,9 +220,9 @@ public class Layer {
         else {
             for (int i = 0; i < error.length; i++) {
                 for (int j = 0; j < prevLayer.error.length; j++) {
-                    acceleration[i][j] *= momentumCoefficient;
-                    acceleration[i][j] += links[i][j] * (1 - momentumCoefficient) * error[i] * prevLayer.output[j] * trainSpeed;
-                    weights[i][j] += links[i][j] * acceleration[i][j];
+                    acceleration[i * prevLayer.error.length + j] *= momentumCoefficient;
+                    acceleration[i * prevLayer.error.length + j] += links[i * prevLayer.error.length + j] * (1 - momentumCoefficient) * error[i] * prevLayer.output[j] * trainSpeed;
+                    weights[i * prevLayer.error.length + j] += links[i * prevLayer.error.length + j] * acceleration[i * prevLayer.error.length + j];
                 }
                 biasWeight[i] += error[i] * trainSpeed;
                 recurrent[i] += rec * error[i] * output[i] * trainSpeed;
@@ -223,15 +231,16 @@ public class Layer {
     }
     public void CNW_GPU(double trainSpeed, double momentumCoefficient) {
         if (firstLayer) {
+            train.run(input, acceleration, weights, links, error, trainSpeed, momentumCoefficient);
             for (int i = 0; i < output.length; i++) {
-                train.run(input, acceleration[i], weights[i], links[i], error[i], trainSpeed, momentumCoefficient);
                 biasWeight[i] += error[i] * trainSpeed;
                 recurrent[i] += rec * error[i] * output[i] * trainSpeed;
             }
         }
         else {
+            train.run(prevLayer.output, acceleration, weights, links, error, trainSpeed, momentumCoefficient);
+
             for (int i = 0; i < output.length; i++) {
-                train.run(prevLayer.output, acceleration[i], weights[i], links[i], error[i], trainSpeed, momentumCoefficient);
                 biasWeight[i] += error[i] * trainSpeed;
                 recurrent[i] += rec * error[i] * output[i] * trainSpeed;
             }
@@ -244,7 +253,7 @@ public class Layer {
             if (Math.random() < coefficient) biasWeight[i] = Math.random() * 2 - 1;
             if (rec == 1 && Math.random() < coefficient) recurrent[i] = Math.random() * 2 - 1;
             for (int j = 0; j < weights.length; j++)
-                if (Math.random() < coefficient) weights[i][j] = Math.random() * 2 - 1;
+                if (Math.random() < coefficient) weights[i * prevLayer.error.length + j] = Math.random() * 2 - 1;
         }
 
     }
@@ -273,7 +282,7 @@ public class Layer {
         return error.length;
     }
 
-    public double[][] getWeights() {
+    public double[] getWeights() {
         return weights;
     }
 

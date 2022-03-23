@@ -16,9 +16,10 @@ import java.io.IOException;
 public class NetworkTests extends TestCase {
     TableLogger logger;
     CalculatingType type = CalculatingType.GPU;
+
     public void testXOR() {
         LayeredNeuralNetwork network = new LayeredNeuralNetwork(type);
-        network.initInLayer(AFunction.Sigmoid, 4,2);
+        network.initInLayer(AFunction.Sigmoid, 4, 2);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 2);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 1);
         network.setTrainSpeed(0.05);
@@ -56,7 +57,7 @@ public class NetworkTests extends TestCase {
                 network.setInput(0, x);
                 network.setInput(1, y);
                 network.calculateNet();
-                System.out.printf("%1.1f ",network.getOutput(0));
+                System.out.printf("%1.1f ", network.getOutput(0));
             }
             System.out.println();
         }
@@ -74,7 +75,8 @@ public class NetworkTests extends TestCase {
         double error = 0;
         int epoch = 0;
         File[][] files = new File[10][];
-        for (int i = 0; i < 10; i++) files[i] = new File("C:\\Projects\\JavaProjects\\NeuroNetLib\\src\\test\\resources\\dataset\\" + i).listFiles();
+        for (int i = 0; i < 10; i++)
+            files[i] = new File("C:\\Projects\\JavaProjects\\NeuroNetLib\\src\\test\\resources\\dataset\\" + i).listFiles();
         do {
             int i = epoch % 10;
             try {
@@ -135,7 +137,8 @@ public class NetworkTests extends TestCase {
         double error = 0;
         int epoch = 0;
         File[][] files = new File[10][];
-        for (int i = 0; i < 10; i++) files[i] = new File("C:\\Projects\\JavaProjects\\NeuroNetLib\\src\\test\\resources\\dataset\\" + i).listFiles();
+        for (int i = 0; i < 10; i++)
+            files[i] = new File("C:\\Projects\\JavaProjects\\NeuroNetLib\\src\\test\\resources\\dataset\\" + i).listFiles();
         do {
             int i = epoch % 10;
             try {
@@ -174,7 +177,7 @@ public class NetworkTests extends TestCase {
                 }
                 network.calculateNet();
                 System.out.println(j);
-                for (int k = 0; k < 10; k++) System.out.printf("%1.2f ",network.getOutput(k));
+                for (int k = 0; k < 10; k++) System.out.printf("%1.2f ", network.getOutput(k));
                 System.out.println();
             } catch (IOException ignored) {
             }
@@ -184,8 +187,7 @@ public class NetworkTests extends TestCase {
 
     public void testCreation() {
         LayeredNeuralNetwork network = new LayeredNeuralNetwork(type);
-        network.initInLayer(AFunction.Sigmoid, 7 * 7,11);
-        network.initHiddenOrOutLayer(AFunction.Sigmoid, 7 * 7);
+        network.initInLayer(AFunction.Sigmoid, 7 * 7, 11);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 14 * 14);
         network.initHiddenOrOutLayer(AFunction.Sigmoid, 28 * 28);
         network.setTrainSpeed(0.001);
@@ -195,12 +197,13 @@ public class NetworkTests extends TestCase {
         double error = 0;
         int epoch = 0;
         File[][] files = new File[10][];
-        for (int i = 0; i < 10; i++) files[i] = new File("C:\\Projects\\JavaProjects\\NeuroNetLib\\src\\test\\resources\\dataset\\" + i).listFiles();
+        for (int i = 0; i < 10; i++)
+            files[i] = new File("C:\\Projects\\JavaProjects\\NeuroNetLib\\src\\test\\resources\\dataset\\" + i).listFiles();
         do {
             int i = epoch % 10;
             try {
                 BufferedImage img = ImageIO.read(files[i][(epoch / 10) % files[i].length]);
-                for (int k = 0; k < 10; k++)  network.setInput(k, k == i ? 1 : 0);
+                for (int k = 0; k < 10; k++) network.setInput(k, k == i ? 1 : 0);
                 network.setInput(10, Math.random());
                 double[] rr = new double[28 * 28];
                 for (int y = 0; y < 28; y++) {
@@ -227,7 +230,7 @@ public class NetworkTests extends TestCase {
         for (int i = 0; i < 10; i++) {
             try {
                 BufferedImage img = ImageIO.read(files[i][(int) (Math.random() * files[i].length)]);
-                for (int k = 0; k < 10; k++)  network.setInput(k, k == i ? 1 : 0);
+                for (int k = 0; k < 10; k++) network.setInput(k, k == i ? 1 : 0);
                 network.setInput(10, Math.random());
                 network.calculateNet();
                 for (int y = 0; y < 28; y++) {
@@ -240,5 +243,38 @@ public class NetworkTests extends TestCase {
             }
         }
         logger.close();
+    }
+
+    public void testSpeed() {
+        LayeredNeuralNetwork network = new LayeredNeuralNetwork(type);
+        network.initInLayer(AFunction.Sigmoid,10000, 10000);
+        network.initHiddenOrOutLayer(AFunction.Sigmoid,10000);
+        network.setTrainSpeed(0.001);
+        logger = new TableLogger("Creation", "epoch", "error");
+        System.out.println("Training started!");
+
+        double error = 0;
+        int epoch = 0;
+        {
+            for (int k = 0; k < 10000; k++) network.setInput(k, Math.random());
+            double[] rr = new double[100 * 100];
+            for (int y = 0; y < 100; y++) {
+                for (int x = 0; x < 100; x++) {
+                    rr[y * 100 + x] = Math.random();
+                }
+            }
+
+            network.calculateNet();
+            network.calculateError(rr);
+            network.calculateNewWeights();
+
+            error = network.getError(rr);
+            epoch++;
+            if (epoch % 10 == 0) {
+                System.out.printf("Error: %3.2f\n", error);
+                logger.writeData(epoch, error);
+            }
+        }
+        while (error > 10) ;
     }
 }
