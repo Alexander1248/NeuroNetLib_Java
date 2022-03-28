@@ -3,7 +3,7 @@ package ru.nnlib.core.functions;
 public class Identity extends ActivationFunction{
     @Override
     public double getOutput(double input) {
-        return input * steepness - shift;
+        return input * steepness;
     }
 
     @Override
