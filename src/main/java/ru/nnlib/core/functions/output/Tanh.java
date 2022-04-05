@@ -1,4 +1,4 @@
-package ru.nnlib.core.functions;
+package ru.nnlib.core.functions.output;
 
 public class Tanh extends ActivationFunction {
     @Override

@@ -1,50 +1,52 @@
 package ru.nnlib.core.network;
 
-import ru.nnlib.core.functions.ActivationFunction;
+import ru.nnlib.core.functions.input.InputFunction;
+import ru.nnlib.core.functions.output.ActivationFunction;
 
-import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 public class Neuron {
-    private final ActivationFunction function;
+    private final InputFunction inputFunction;
+    private final ActivationFunction activationFunction;
 
-    private final List<Double> inputs;
-    private final List<Double> weights;
+    private final List<Connection> connections;
 
     private double output;
 
-    public Neuron(ActivationFunction function) {
-        this.function = function;
-        inputs = new LinkedList<>();
-        weights = new LinkedList<>();
+    public Neuron(InputFunction inputFunction, ActivationFunction activationFunction) {
+        this.inputFunction = inputFunction;
+        this.activationFunction = activationFunction;
+
+        connections = new LinkedList<>();
     }
 
+    public InputFunction getInputFunction() {
+        return inputFunction;
+    }
 
-    public ActivationFunction getFunction() {
-        return function;
+    public ActivationFunction getActivationFunction() {
+        return activationFunction;
     }
 
     public double getOutput() {
         return output;
     }
 
-    public List<Double> getWeights() {
-        return weights;
+    public void addConnection(Connection connection) {
+        connections.add(connection);
     }
 
-    public void setInput(int i, double val) {
-        inputs.set(i, val);
+    public List<Connection> getConnections() {
+        return connections;
     }
 
-    public void editWeight(int i, double delta) {
-        weights.set(i, weights.get(i) + delta);
+    public void calculate() {
+        inputFunction.reset();
+        Iterator<Connection> iterator = connections.iterator();
+        while (iterator.hasNext()) iterator.next().transfer();
+        output = activationFunction.getOutput(inputFunction.getOutput());
     }
-
-    public void addInput() {
-        inputs.add(0.0);
-        weights.add(Math.random() - 0.5);
-    }
-
 
 }

@@ -1,4 +1,4 @@
-package ru.nnlib.core.functions;
+package ru.nnlib.core.functions.output;
 
 public abstract class ActivationFunction {
     public double steepness = 1;

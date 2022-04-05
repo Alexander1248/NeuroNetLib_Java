@@ -1,4 +1,4 @@
-package ru.nnlib.core.training;
+package ru.nnlib.core.learning;
 
 public abstract class Learning {
 }
